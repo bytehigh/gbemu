@@ -51,29 +51,50 @@ func (gbcpu *cpu) initialise() {
 		0x0000: "nop",
 		/*
 			"ld_bc_d16": 0x01, "ld_bc_a": 0x02, "inc_bc": 0x03,
-			"inc_b": 0x04, "dec_b": 0x05, "ld_b_d8": 0x06, "rlca": 0x07,
+			"inc_b": 0x04,
+		*/
+		0x0005: "dec_b", 0x0006: "ld_b_d8",
+		/*
+			"rlca": 0x07,
 			"ld_a16_sp": 0x08, "add_hl_bc": 0x09, "ld_a_bc": 0x0A, "dec_bc": 0x0B,
-			"inc_c": 0x0C, "dec_c": 0x0D, "ld_c_d8": 0x0E, "rrca": 0x0F,
-			// 0x01
-			"stop_0": 0x10, "ld_de_d16": 0x11, "ld_de_a": 0x12, "inc_de": 0x13,
-			"inc_d": 0x14, "dec_d": 0x15, "ld_d_d8": 0x16, "rla": 0x17,
-			"jr_r8": 0x18, "add_hl_de": 0x19, "ld_a_de": 0x1A, "dec_de": 0x1B,
-			"inc_e": 0x1C, "dec_e": 0x1D, "ld_e_d8": 0x1E, "rra": 0x1F,
+		*/
+		0x000C: "inc_c",
+		/*
+			"dec_c": 0x0D, */
+		0x000E: "ld_c_d8",
+		/*"rrca": 0x0F,
+		// 0x01
+		"stop_0": 0x10,*/
+		0x0011: "ld_de_d16",
+		/* "ld_de_a": 0x12, "inc_de": 0x13,
+		"inc_d": 0x14, "dec_d": 0x15, "ld_d_d8": 0x16,
+		*/
+		0x0017: "rla",
+		/*
+			"jr_r8": 0x18, "add_hl_de": 0x19,
+		*/
+		0x001A: "ld_a_de",
+		/*"dec_de": 0x1B,
+		"inc_e": 0x1C, "dec_e": 0x1D, "ld_e_d8": 0x1E, "rra": 0x1F,
 		*/
 		// 0x20
-		0x0020: "jr_nz_r8", 0x0021: "ld_hl_d16",
-		/*"ld_hl_plus_a": 0x22, "inc_hl": 0x23,
-		"inc_h": 0x24, "dec_h": 0x25, "ld_h_d8": 0x26, "daa": 0x27,
+		0x0020: "jr_nz_r8", 0x0021: "ld_hl_d16", 0x0022: "ld_hl_plus_a", 0x0023: "inc_hl",
+		/*"inc_h": 0x24, "dec_h": 0x25, "ld_h_d8": 0x26, "daa": 0x27,
 		"jr_z_r8": 0x28, "add_hl_hl": 0x29, "ld_a_hl_plus": 0x2A, "dec_hl": 0x2B,
 		"inc_l": 0x2C, "dec_l": 0x2D, "ld_l_d8": 0x2E, "cpl": 0x2F,
 		*/
 		// 0x30
 		0x0030: "jr_nc_r8", 0x0031: "ld_sp_d16", 0x0032: "ld_hl_minus_a",
 		/*:inc_sp, :inc__hl, :dec__hl, :ld_hl_d8, :scf,
-		      :jr_c_r8, :add_hl_sp, :ld_a_hl_minus, :dec_sp, :inc_a, :dec_a, :ld_a_d8, :ccf,
-		      // 0x40
-		      :ld_b_b, :ld_b_c, :ld_b_d, :ld_b_e, :ld_b_h, :ld_b_l, :ld_b_hl, :ld_b_a, :ld_c_b,
-		      :ld_c_c, :ld_c_d, :ld_c_e, :ld_c_h, :ld_c_l, :ld_c_hl, :ld_c_a,
+		  :jr_c_r8, :add_hl_sp, :ld_a_hl_minus, :dec_sp, :inc_a, :dec_a, */
+		0x003E: "ld_a_d8",
+		/*
+		   // 0x40
+		   :ld_b_b, :ld_b_c, :ld_b_d, :ld_b_e, :ld_b_h, :ld_b_l, :ld_b_hl, :ld_b_a, :ld_c_b,
+		   :ld_c_c, :ld_c_d, :ld_c_e, :ld_c_h, :ld_c_l, :ld_c_hl,
+		*/
+		0x004F: "ld_c_a",
+		/*
 		  	// 0x50
 		      :ld_d_b, :ld_d_c, :ld_d_d, :ld_d_e, :ld_d_h, :ld_d_l, :ld_d_hl, :ld_d_a, :ld_e_b,
 		      :ld_e_c, :ld_e_d, :ld_e_e, :ld_e_h, :ld_e_l, :ld_e_hl, :ld_e_a,
@@ -81,14 +102,18 @@ func (gbcpu *cpu) initialise() {
 		      :ld_h_b, :ld_h_c, :ld_h_d, :ld_h_e, :ld_h_h, :ld_h_l, :ld_h_hl, :ld_h_a, :ld_l_b,
 		      :ld_l_c, :ld_l_d, :ld_l_e, :ld_l_h, :ld_l_l, :ld_l_hl, :ld_l_a,
 		      // 0x70
-		      :ld_hl_b, :ld_hl_c, :ld_hl_d, :ld_hl_e, :ld_hl_h, :ld_hl_l, :halt, :ld_hl_a, :ld_a_b,
-		      :ld_a_c, :ld_a_d, :ld_a_e, :ld_a_h, :ld_a_l, :ld_a_hl, :ld_a_a,
-		      // 0x80
-		      :add_a_b, :add_a_c, :add_a_d, :add_a_e, :add_a_h, :add_a_l, :add_a_hl, :add_a_a, :adc_a_b,
-		      :adc_a_c, :adc_a_d, :adc_a_e, :adc_a_h, :adc_a_l, :adc_a_hl, :adc_a_a,
-		  	  // 0x90
-		      :sub_b, :sub_c, :sub_d, :sub_e, :sub_h, :sub_l, :sub_hl, :sub_a, :sbc_a_b, :sbc_a_c, :sbc_a_d,
-		      :sbc_a_e, :sbc_a_h, :sbc_a_l, :sbc_a_hl, :sbc_a_a,
+		      :ld_hl_b, :ld_hl_c, :ld_hl_d, :ld_hl_e, :ld_hl_h, :ld_hl_l, :halt,
+		*/
+		0x0077: "ld_hl_a",
+		/*
+				:ld_a_b,
+			      :ld_a_c, :ld_a_d, :ld_a_e, :ld_a_h, :ld_a_l, :ld_a_hl, :ld_a_a,
+			      // 0x80
+			      :add_a_b, :add_a_c, :add_a_d, :add_a_e, :add_a_h, :add_a_l, :add_a_hl, :add_a_a, :adc_a_b,
+			      :adc_a_c, :adc_a_d, :adc_a_e, :adc_a_h, :adc_a_l, :adc_a_hl, :adc_a_a,
+			  	  // 0x90
+			      :sub_b, :sub_c, :sub_d, :sub_e, :sub_h, :sub_l, :sub_hl, :sub_a, :sbc_a_b, :sbc_a_c, :sbc_a_d,
+			      :sbc_a_e, :sbc_a_h, :sbc_a_l, :sbc_a_hl, :sbc_a_a,
 		*/
 		// 0xA0
 		/*
@@ -114,13 +139,33 @@ func (gbcpu *cpu) initialise() {
 		   :or_b, :or_c, :or_d, :or_e, :or_h, :or_l, :or_hl, :or_a, :cp_b, :cp_c, :cp_d, :cp_e, :cp_h, :cp_l,
 		   :cp_hl, :cp_a,
 		   // 0xC0
-		   :ret_nz, :pop_bc, :jp_nz_a16, :jp_a16, :call_nz_a16, :push_bc, :add_a_d8, :rst_00h, :ret_z, :ret,
-		   :jp_z_a16, :prefix_cb, :call_z_a16, :call_a16, :adc_a_d8, :rst_08h,
-		   // 0xD0
-		   :ret_nc, :pop_de, :jp_nc_a16, :xx, :call_nc_a16, :push_de, :sub_d8, :rst_10h, :ret_c, :reti, :jp_c_a16, :xx,
-		   :call_c_a16, :xx, :sbc_a_d8, :rst_18h,
-		   // 0xE0
-		   :ldh_a8_a, :pop_hl, :ld_dc_a, :xx, :xx, :push_hl, :and_d8, :rst_20h, :add_sp_r8, :jp_dhl, :ld_a16_a,
+		   :ret_nz,
+		*/
+		0x00C1: "pop_bc",
+		/*
+		   :jp_nz_a16, :jp_a16, :call_nz_a16,
+		*/
+		0x00C5: "push_bc",
+		/*
+			:add_a_d8, :rst_00h, :ret_z,
+		*/
+		0x00C9: "ret",
+		/*	   :jp_z_a16, :prefix_cb, :call_z_a16,
+		 */
+		0x00CD: "call_a16",
+		/*
+			:adc_a_d8, :rst_08h,
+			   // 0xD0
+			   :ret_nc, :pop_de, :jp_nc_a16, :xx, :call_nc_a16, :push_de, :sub_d8, :rst_10h, :ret_c, :reti, :jp_c_a16, :xx,
+			   :call_c_a16, :xx, :sbc_a_d8, :rst_18h,
+		*/
+		// 0xE0
+		0x00E0: "ldh_a8_a",
+		/*
+			:pop_hl,
+		*/
+		0x00E2: "ld_dc_a",
+		/* :xx, :xx, :push_hl, :and_d8, :rst_20h, :add_sp_r8, :jp_dhl, :ld_a16_a,
 		   :xx, :xx, :xx, :xor_d8, :rst_28h,
 		   // 0xF0
 		   :ldh_a_a8, :pop_af, :ld_a_dc, :di, :xx, :push_af, :or_d8, :rst_30h, :ld_hl_sp_r8, :ld_sp_hl, :ld_a_a16, :ei,
@@ -184,6 +229,15 @@ func makeWord(msb, lsb byte) uint16 {
 	return 256*uint16(msb) + uint16(lsb)
 }
 
+func getlsb(word uint16) byte {
+	return byte(word)
+}
+
+func getmsb(word uint16) byte {
+	return byte(word >> 8)
+}
+
+//fetch next instruction at the program counter (PC)
 func (gbcpu *cpu) fetch() byte {
 	var opcode byte = gbmmu.memory[gbcpu.pc]
 	gbcpu.pc++
@@ -191,8 +245,9 @@ func (gbcpu *cpu) fetch() byte {
 	return opcode
 }
 
+//execute a clock cycle
 func (gbcpu *cpu) tick(gbmmu mmu) {
-	//get the opcode at the current program counter (pc)
+	//get the opcode at the current program counter (PC)
 	//var opcode byte = gbmmu.memory[gbcpu.pc]
 	var opcode = gbcpu.fetch()
 	if opcode == 0xCB {
@@ -200,7 +255,7 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 		opcode = gbcpu.fetch()
 	}
 	asm := gbcpu.opcodes[uint16(opcode)]
-	fmt.Printf("PC: %04x Opcode is %02x %s\n", gbcpu.pc, opcode, asm)
+	fmt.Printf("PC: %04x Opcode is %02x %s\n", gbcpu.pc-1, opcode, asm)
 
 	//perform relevant operation based on the current opcode
 	//todo create 16 bit word with opcode and have one switch statement?
@@ -216,29 +271,45 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.inc_bc()
 		case 0x04:
 			gbcpu.inc_b()
-			/*	case 0x05:
-				case 0x06:
+		case 0x05:
+			gbcpu.dec_b()
+		case 0x06:
+			gbcpu.ld_b_d8()
+			/*
 				case 0x07:
 				case 0x08:
 				case 0x09:
 				case 0x0A:
 				case 0x0B:
-				case 0x0C:
+			*/
+		case 0x0C:
+			gbcpu.inc_c()
+			/*
 				case 0x0D:
-				case 0x0E:
+			*/
+		case 0x0E:
+			gbcpu.ld_c_d8()
+			/*
 				case 0x0F:
 				case 0x10:
-				case 0x11:
+			*/
+		case 0x11:
+			gbcpu.ld_de_d16()
+			/*
 				case 0x12:
 				case 0x13:
 				case 0x14:
 				case 0x15:
 				case 0x16:
-				case 0x17:
-				case 0x18:
+			*/
+		case 0x17:
+			gbcpu.rla()
+			/*	case 0x18:
 				case 0x19:
-				case 0x1A:
-				case 0x1B:
+			*/
+		case 0x1A:
+			gbcpu.ld_a_de()
+			/*	case 0x1B:
 				case 0x1C:
 				case 0x1D:
 				case 0x1E:
@@ -248,9 +319,11 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.jr_nz_r8()
 		case 0x21:
 			gbcpu.ld_hl_d16()
-			/*	case 0x22:
-				case 0x23:
-				case 0x24:
+		case 0x22:
+			gbcpu.ld_hl_plus_a()
+		case 0x23:
+			gbcpu.inc_hl()
+			/*	case 0x24:
 				case 0x25:
 				case 0x26:
 				case 0x27:
@@ -268,8 +341,26 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.ld_sp_d16()
 		case 0x32:
 			gbcpu.ld_hl_minus_a()
+		case 0x3E:
+			gbcpu.ld_a_d8()
+		case 0x4F:
+			gbcpu.ld_c_a()
+		case 0x77:
+			gbcpu.ld_hl_a()
 		case 0xAF:
 			gbcpu.xor_a()
+		case 0xC1:
+			gbcpu.pop_bc()
+		case 0xC5:
+			gbcpu.push_bc()
+		case 0xC9:
+			gbcpu.ret()
+		case 0xCD:
+			gbcpu.call_a16()
+		case 0xE0:
+			gbcpu.ldh_a8_a()
+		case 0xE2:
+			gbcpu.ld_dc_a()
 		default:
 			fmt.Printf("Opcode not implemented. Exiting\n")
 			os.Exit(1)
@@ -292,12 +383,13 @@ func (gbcpu cpu) nop() {
 
 // 0x0001
 func (gbcpu cpu) ld_bc_d16() {
-
+	fmt.Printf("Instruction not yet implemented\n")
 }
 
 // 0x0002
 func (gbcpu cpu) ld_bc_a() {
-
+	var bc = makeWord(gbcpu.b, gbcpu.c)
+	gbcpu.a = gbmmu.memory[bc]
 }
 
 // 0x0003
@@ -314,12 +406,80 @@ func (gbcpu *cpu) inc_b() {
 	gbcpu.b++
 }
 
+// 0x0005
+func (gbcpu *cpu) dec_b() {
+	//set Z flag as appropriate
+	if gbcpu.b == 0x01 {
+		_ = Set(gbcpu.f, F6)
+	}
+	//todo - implement other flags
+	gbcpu.b--
+}
+
+// 0x0006
+func (gbcpu *cpu) ld_b_d8() {
+	gbcpu.b = gbcpu.fetch()
+}
+
+// 0x000C
+func (gbcpu *cpu) inc_c() {
+	gbcpu.c++
+}
+
+// 0x000E
+func (gbcpu *cpu) ld_c_d8() {
+	gbcpu.c = gbcpu.fetch()
+}
+
+// 0x0011
+func (gbcpu *cpu) ld_de_d16() {
+	//LSB first
+	gbcpu.e = gbcpu.fetch()
+	gbcpu.d = gbcpu.fetch()
+}
+
+// 0x0017
+func (gbcpu *cpu) rla() {
+	//capture status of C flag
+	carry := Has(gbcpu.f, F0)
+
+	//set S if result is negative
+	//todo
+	//set Z if result is zero
+	//todo
+	//reset H
+	_ = Clear(gbcpu.f, F4)
+	//PV set if parity is even; otherwise, it is reset
+	//todo
+	//reset N
+	_ = Clear(gbcpu.f, F1)
+	//set C according to bit 7 of register A before the shift
+	if gbcpu.a&0x80 == 0x80 {
+		_ = Set(gbcpu.f, F0)
+	} else {
+		_ = Clear(gbcpu.f, F0)
+	}
+
+	gbcpu.a = gbcpu.a << 1
+	//set bit 0 of A to carry flag
+	if carry {
+		gbcpu.a = gbcpu.a | 0x01
+	}
+}
+
+// 0x001A
+func (gbcpu *cpu) ld_a_de() {
+	var de = makeWord(gbcpu.d, gbcpu.e)
+	gbcpu.a = gbmmu.memory[de]
+}
+
 // 0x0020
 func (gbcpu *cpu) jr_nz_r8() {
+	//fetch relative offset for jump if required
+	var rel_offset = gbcpu.fetch()
 
 	//check if Z flag not set
 	if !Has(gbcpu.f, F6) {
-		var rel_offset = gbcpu.fetch()
 		if rel_offset > 127 {
 			gbcpu.pc = gbcpu.pc - uint16((255 - rel_offset + 1))
 		} else {
@@ -330,8 +490,25 @@ func (gbcpu *cpu) jr_nz_r8() {
 
 // 0x0021
 func (gbcpu *cpu) ld_hl_d16() {
-	gbcpu.h = gbcpu.fetch()
+	//LSB first
 	gbcpu.l = gbcpu.fetch()
+	gbcpu.h = gbcpu.fetch()
+}
+
+// 0x0022
+func (gbcpu *cpu) ld_hl_plus_a() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	gbmmu.memory[hl] = gbcpu.a
+	gbcpu.inc_hl()
+}
+
+// 0x0023
+func (gbcpu *cpu) inc_hl() {
+	var hl uint16 = 256*uint16(gbcpu.h) + uint16(gbcpu.l)
+	hl++
+	gbcpu.h = uint8(hl >> 8)
+	gbcpu.l = uint8(hl & 0xFF)
+	fmt.Printf("HL is %02x%02x\n", gbcpu.h, gbcpu.l)
 }
 
 // 0x002B
@@ -345,8 +522,8 @@ func (gbcpu *cpu) dec_hl() {
 
 // 0x0031
 func (gbcpu *cpu) ld_sp_d16() {
-	var msb = gbcpu.fetch()
 	var lsb = gbcpu.fetch()
+	var msb = gbcpu.fetch()
 	var d16 = makeWord(msb, lsb)
 
 	gbcpu.sp = d16
@@ -359,9 +536,84 @@ func (gbcpu *cpu) ld_hl_minus_a() {
 	gbcpu.dec_hl()
 }
 
+// 0x003E
+func (gbcpu *cpu) ld_a_d8() {
+	data := gbcpu.fetch()
+	gbcpu.a = data
+}
+
+// 0x003E
+func (gbcpu *cpu) ld_c_a() {
+	gbcpu.c = gbcpu.a
+}
+
+// 0x0077
+func (gbcpu *cpu) ld_hl_a() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	gbmmu.memory[hl] = gbcpu.a
+}
+
 // 0x00AF
 func (gbcpu *cpu) xor_a() {
 	gbcpu.a = gbcpu.a ^ gbcpu.a
+}
+
+// 0x00C5
+func (gbcpu *cpu) pop_bc() {
+	gbcpu.sp--
+	gbcpu.b = gbmmu.memory[gbcpu.sp]
+	gbcpu.sp--
+	gbcpu.c = gbmmu.memory[gbcpu.sp]
+	fmt.Printf("popped bc as %02x%02x\n", gbcpu.b, gbcpu.c)
+}
+
+// 0x00C5
+func (gbcpu *cpu) push_bc() {
+	fmt.Printf("pushing bc as %02x%02x\n", gbcpu.b, gbcpu.c)
+	gbmmu.memory[gbcpu.sp] = gbcpu.c
+	gbcpu.sp++
+	gbmmu.memory[gbcpu.sp] = gbcpu.b
+	gbcpu.sp++
+}
+
+// 0x00C9
+func (gbcpu *cpu) ret() {
+	gbcpu.sp--
+	msb := gbmmu.memory[gbcpu.sp]
+	gbcpu.sp--
+	lsb := gbmmu.memory[gbcpu.sp]
+	gbcpu.pc = makeWord(msb, lsb)
+	fmt.Printf("Return popped to PC as %04x\n", gbcpu.pc)
+}
+
+// 0x00CD
+func (gbcpu *cpu) call_a16() {
+	var lsb = gbcpu.fetch()
+	var msb = gbcpu.fetch()
+	var d16 = makeWord(msb, lsb)
+
+	//push current PC onto stack
+	fmt.Printf("PC: %04x LSB %02x MSB %02x\n", gbcpu.pc, getlsb(gbcpu.pc), getmsb(gbcpu.pc))
+	gbmmu.memory[gbcpu.sp] = getlsb(gbcpu.pc)
+	gbcpu.sp++
+	gbmmu.memory[gbcpu.sp] = getmsb(gbcpu.pc)
+	gbcpu.sp++
+
+	//jump to new location
+	gbcpu.pc = d16
+	fmt.Printf("Calling to PC: %04x\n", gbcpu.pc)
+}
+
+// 0x00E0
+func (gbcpu *cpu) ldh_a8_a() {
+	offset := gbcpu.fetch()
+
+	gbmmu.memory[0xFF00+uint16(offset)] = gbcpu.a
+}
+
+// 0x00E2
+func (gbcpu *cpu) ld_dc_a() {
+	gbmmu.memory[0xFF00+uint16(gbcpu.c)] = gbcpu.a
 }
 
 // 0xCB7C
