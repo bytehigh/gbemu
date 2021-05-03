@@ -6,16 +6,8 @@ import (
 	"os"
 )
 
-const mem_size = 65536
-
 //const boot_rom string = "31 FE FF AF 21 FF 9F 32 CB 7C 20 FB 21 26 FF 0E 11 3E 80 32 E2 0C 3E F3 E2 32 3E 77 77 3E FC E0 47 11 04 01 21 10 80 1A CD 95 00 CD 96 00 13 7B FE 34 20 F3 11 D8 00 06 08 1A 13 22 23 05 20 F9 3E 19 EA 10 99 21 2F 99 0E 0C 3D 28 08 32 0D 20 F9 2E 0F 18 F3 67 3E 64 57 E0 42 3E 91 E0 40 04 1E 02 0E 0C F0 44 FE 90 20 FA 0D 20 F7 1D 20 F2 0E 13 24 7C 1E 83 FE 62 28 06 1E C1 FE 64 20 06 7B E2 0C 3E 87 E2 F0 42 90 E0 42 15 20 D2 05 20 4F 16 20 18 CB 4F 06 04 C5 CB 11 17 C1 CB 11 17 05 20 F5 22 23 22 23 C9 CE ED 66 66 CC 0D 00 0B 03 73 00 83 00 0C 00 0D 00 08 11 1F 88 89 00 0E DC CC 6E E6 DD DD D9 99 BB BB 67 63 6E 0E EC CC DD DC 99 9F BB B9 33 3E 3C 42 B9 A5 B9 A5 42 3C 21 04 01 11 A8 00 1A 13 BE 20 FE 23 7D FE 34 20 F5 06 19 78 86 23 05 20 FB 86 20 FE 3E 01 E0 50"
 const boot_rom string = "31FEFFAF21FF9F32CB7C20FB2126FF0E113E8032E20C3EF3E2323E77773EFCE0471104012110801ACD9500CD9600137BFE3420F311D80006081A1322230520F93E19EA1099212F990E0C3D2808320D20F92E0F18F3673E6457E0423E91E040041E020E0CF044FE9020FA0D20F71D20F20E13247C1E83FE6228061EC1FE6420067BE20C3E87E2F04290E0421520D205204F162018CB4F0604C5CB1117C1CB11170520F522232223C9CEED6666CC0D000B03730083000C000D0008111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E3C42B9A5B9A5423C21040111A8001A13BE20FE237DFE3420F506197886230520FB8620FE3E01E050"
-
-var gbmmu mmu
-
-type mmu struct {
-	memory [mem_size]byte
-}
 
 type cpu struct {
 	a, b, c, d, e, h, l byte
@@ -102,15 +94,19 @@ func (gbcpu *cpu) initialise() {
 		  // 0x70
 		  :ld_hl_b, :ld_hl_c, :ld_hl_d, :ld_hl_e, :ld_hl_h, :ld_hl_l, :halt,
 		*/
-		0x0077: "ld_hl_a",
+		0x0077: "ld_hl_a", 0x0078: "ld_a_b",
 		/*
-				:ld_a_b,
-			      :ld_a_c, :ld_a_d,
+		   :ld_a_c, :ld_a_d,
 		*/
-		0x007B: "ld_a_e", 0x007C: "ld_a_h",
-		/*:ld_a_l, :ld_a_hl, :ld_a_a,
-		  // 0x80
-		  :add_a_b, :add_a_c, :add_a_d, :add_a_e, :add_a_h, :add_a_l, :add_a_hl, :add_a_a, :adc_a_b,
+		0x007B: "ld_a_e", 0x007C: "ld_a_h", 0x007D: "ld_a_l",
+		/*
+			0x007E: "ld_a_hl",
+			 :ld_a_a,
+			  // 0x80
+			  :add_a_b, :add_a_c, :add_a_d, :add_a_e, :add_a_h, :add_a_l,
+		*/
+		0x0086: "add_a_hl",
+		/*:add_a_a, :adc_a_b,
 		  :adc_a_c, :adc_a_d, :adc_a_e, :adc_a_h, :adc_a_l, :adc_a_hl, :adc_a_a,
 		*/
 		// 0x90
@@ -378,10 +374,16 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.ld_h_a()
 		case 0x77:
 			gbcpu.ld_hl_a()
+		case 0x78:
+			gbcpu.ld_a_b()
 		case 0x7B:
 			gbcpu.ld_a_e()
 		case 0x7C:
 			gbcpu.ld_a_h()
+		case 0x7D:
+			gbcpu.ld_a_l()
+		case 0x86:
+			gbcpu.add_a_hl()
 		case 0x90:
 			gbcpu.sub_b()
 		case 0xAF:
@@ -711,13 +713,20 @@ func (gbcpu *cpu) ld_d_a() {
 
 // 0x0067
 func (gbcpu *cpu) ld_h_a() {
-	gbmmu.memory[gbcpu.h] = gbcpu.a
+	//wrong?
+	//gbmmu.memory[gbcpu.h] = gbcpu.a
+	gbcpu.h = gbcpu.a
 }
 
 // 0x0077
 func (gbcpu *cpu) ld_hl_a() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
 	gbmmu.memory[hl] = gbcpu.a
+}
+
+// 0x0078
+func (gbcpu *cpu) ld_a_b() {
+	gbcpu.a = gbcpu.b
 }
 
 // 0x007B
@@ -730,6 +739,18 @@ func (gbcpu *cpu) ld_a_h() {
 	gbcpu.a = gbcpu.h
 }
 
+// 0x007D
+func (gbcpu *cpu) ld_a_l() {
+	gbcpu.a = gbcpu.l
+}
+
+// 0x0086
+func (gbcpu *cpu) add_a_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+
+	gbcpu.a = gbcpu.a + gbmmu.memory[hl]
+}
+
 // 0x0090
 func (gbcpu *cpu) sub_b() {
 	gbcpu.a = gbcpu.a - gbcpu.b
@@ -737,7 +758,8 @@ func (gbcpu *cpu) sub_b() {
 
 // 0x00AF
 func (gbcpu *cpu) xor_a() {
-	gbcpu.a = gbcpu.a ^ gbcpu.a
+	gbcpu.a = 0 //replaces the "fast" way of setting A to zero
+	//gbcpu.a = gbcpu.a ^ gbcpu.a
 }
 
 // 0x00BE
@@ -749,7 +771,7 @@ func (gbcpu *cpu) cp_hl() {
 		gbcpu.f = Clear(gbcpu.f, F6)
 	}
 	//todo - implement other flags
-	fmt.Printf("a is %02x, operand is %02x\n", gbcpu.a, gbmmu.memory[hl])
+	fmt.Printf("a is %02x, (hl) is %02x\n", gbcpu.a, gbmmu.memory[hl])
 }
 
 // 0x00C5
@@ -859,11 +881,13 @@ func main() {
 	//gbmmu := mmu{}
 	gbcpu := cpu{}
 	gbppu := ppu{}
+	gbrom := rom{}
 
-	//initialise cpu
+	//initialise cpu, ppu, rom
 	gbcpu.initialise()
-	//initialise ppu
 	gbppu.initialise()
+	gbrom.initialise()
+	gbrom.load()
 
 	//load boot.rom
 
