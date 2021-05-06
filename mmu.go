@@ -8,3 +8,11 @@ var gbmmu mmu
 type mmu struct {
 	memory [mem_size]byte
 }
+
+func (gbmmu *mmu) fetchByte(address uint16) byte {
+	return gbmmu.memory[address]
+}
+
+func (gbmmu *mmu) storeByte(address uint16, value byte) {
+	gbmmu.memory[address] = value
+}
