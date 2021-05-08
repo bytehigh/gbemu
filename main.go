@@ -8,6 +8,7 @@ import (
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 )
 
 var DEBUG bool = false
@@ -932,7 +933,7 @@ func (gbcpu *cpu) bit_7_h() {
 }
 
 func run() {
-	//gbmmu := mmu{}
+	//gbmmu is global
 	gbcpu := cpu{}
 	gbppu := ppu{}
 	gbrom := rom{}
@@ -977,12 +978,8 @@ func run() {
 		panic(err)
 	}
 
-	//flipY := pixel.IM.ScaledXY(pixel.V(0, 0), pixel.V(1, -1)).Moved(pixel.V(0, win.Bounds().H()))
-	//win.SetMatrix(cam.Chained(flipY))
-
-	//win.Clear(colornames.Greenyellow)
-
 	for !win.Closed() {
+		win.Clear(colornames.Black)
 		gbppu.processTileMap()
 		gbppu.vblank(win)
 	}
