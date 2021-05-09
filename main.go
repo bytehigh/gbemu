@@ -8,7 +8,6 @@ import (
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 )
 
 var DEBUG bool = false
@@ -22,6 +21,7 @@ type cpu struct {
 	pc, sp              uint16
 	opcodes             map[uint16]string
 	cb_prefix           bool
+	tstates             uint16
 }
 
 type Bits uint8
@@ -130,21 +130,10 @@ func (gbcpu *cpu) initialise() {
 		*/
 		// 0xA0
 		/*
-			"and_b":  0xA0,
-			"and_c":  0xA1,
-			"and_d":  0xA2,
-			"and_e":  0xA3,
-			"and_h":  0xA4,
-			"and_l":  0xA5,
-			"and_hl": 0xA6,
-			"and_a":  0xA7,
-			"xor_b":  0xA8,
-			"xor_c":  0xA9,
-			"xor_d":  0xAA,
-			"xor_e":  0xAB,
-			"xor_h":  0xAC,
-			"xor_l":  0xAD,
-			"xor_hl": 0xAE,
+			"and_b":  0xA0,	"and_c":  0xA1,	"and_d":  0xA2,	"and_e":  0xA3,
+			"and_h":  0xA4,	"and_l":  0xA5,	"and_hl": 0xA6,	"and_a":  0xA7,
+			"xor_b":  0xA8,	"xor_c":  0xA9,	"xor_d":  0xAA,	"xor_e":  0xAB,
+			"xor_h":  0xAC,	"xor_l":  0xAD,	"xor_hl": 0xAE,
 		*/
 		0x00AF: "xor_a",
 		/*
@@ -262,8 +251,9 @@ func getmsb(word uint16) byte {
 
 //fetch next instruction at the program counter (PC)
 func (gbcpu *cpu) fetch() byte {
-	var opcode byte = gbmmu.memory[gbcpu.pc]
+	var opcode byte = gbmmu.fetchByte(gbcpu.pc)
 	gbcpu.pc++
+	gbcpu.tstates += 4
 
 	return opcode
 }
@@ -309,31 +299,16 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.dec_b()
 		case 0x06:
 			gbcpu.ld_b_d8()
-			/*
-				case 0x07:
-				case 0x08:
-				case 0x09:
-				case 0x0A:
-				case 0x0B:
-			*/
 		case 0x0C:
 			gbcpu.inc_c()
 		case 0x0D:
 			gbcpu.dec_c()
 		case 0x0E:
 			gbcpu.ld_c_d8()
-			/*
-				case 0x0F:
-				case 0x10:
-			*/
 		case 0x11:
 			gbcpu.ld_de_d16()
-			/*
-				case 0x12:
-			*/
 		case 0x13:
 			gbcpu.inc_de()
-			/*	case 0x14:*/
 		case 0x15:
 			gbcpu.dec_d()
 		case 0x16:
@@ -342,20 +317,12 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.rla()
 		case 0x18:
 			gbcpu.jr_r8()
-			/*	case 0x19:
-			 */
 		case 0x1A:
 			gbcpu.ld_a_de()
-			/*	case 0x1B:
-				case 0x1C:
-				case 0x1D:
-			*/
 		case 0x1D:
 			gbcpu.dec_e()
 		case 0x1E:
 			gbcpu.ld_e_d8()
-			/*	case 0x1F:
-			 */
 		case 0x20:
 			gbcpu.jr_nz_r8()
 		case 0x21:
@@ -366,25 +333,10 @@ func (gbcpu *cpu) tick(gbmmu mmu) {
 			gbcpu.inc_hl()
 		case 0x24:
 			gbcpu.inc_h()
-			/*	case 0x25:
-				case 0x26:
-				case 0x27:
-			*/
 		case 0x28:
 			gbcpu.jr_z_r8()
-			/*
-				case 0x29:
-				case 0x2A:
-				case 0x2B:
-				case 0x2C:
-				case 0x2D:
-			*/
 		case 0x2E:
 			gbcpu.ld_l_d8()
-			/*
-				case 0x2F:
-				case 0x30:
-			*/
 		case 0x31:
 			gbcpu.ld_sp_d16()
 		case 0x32:
@@ -467,7 +419,7 @@ func (gbcpu cpu) ld_bc_d16() {
 // 0x0002
 func (gbcpu cpu) ld_bc_a() {
 	var bc = makeWord(gbcpu.b, gbcpu.c)
-	gbcpu.a = gbmmu.memory[bc]
+	gbcpu.a = gbmmu.fetchByte(bc)
 }
 
 // 0x0003
@@ -598,7 +550,7 @@ func (gbcpu *cpu) jr_r8() {
 // 0x001A
 func (gbcpu *cpu) ld_a_de() {
 	var de = makeWord(gbcpu.d, gbcpu.e)
-	gbcpu.a = gbmmu.memory[de]
+	gbcpu.a = gbmmu.fetchByte(de)
 }
 
 // 0x001D
@@ -645,7 +597,7 @@ func (gbcpu *cpu) ld_hl_d16() {
 // 0x0022
 func (gbcpu *cpu) ld_hl_plus_a() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
-	gbmmu.memory[hl] = gbcpu.a
+	gbmmu.storeByte(hl, gbcpu.a)
 	gbcpu.inc_hl()
 }
 
@@ -704,7 +656,7 @@ func (gbcpu *cpu) ld_sp_d16() {
 // 0x0032
 func (gbcpu *cpu) ld_hl_minus_a() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
-	gbmmu.memory[hl] = gbcpu.a
+	gbmmu.storeByte(hl, gbcpu.a)
 	gbcpu.dec_hl()
 }
 
@@ -739,15 +691,13 @@ func (gbcpu *cpu) ld_d_a() {
 
 // 0x0067
 func (gbcpu *cpu) ld_h_a() {
-	//wrong?
-	//gbmmu.memory[gbcpu.h] = gbcpu.a
 	gbcpu.h = gbcpu.a
 }
 
 // 0x0077
 func (gbcpu *cpu) ld_hl_a() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
-	gbmmu.memory[hl] = gbcpu.a
+	gbmmu.storeByte(hl, gbcpu.a)
 }
 
 // 0x0078
@@ -774,7 +724,7 @@ func (gbcpu *cpu) ld_a_l() {
 func (gbcpu *cpu) add_a_hl() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
 
-	gbcpu.a = gbcpu.a + gbmmu.memory[hl]
+	gbcpu.a = gbcpu.a + gbmmu.fetchByte(hl)
 }
 
 // 0x0090
@@ -791,39 +741,39 @@ func (gbcpu *cpu) xor_a() {
 // 0x00BE
 func (gbcpu *cpu) cp_hl() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
-	if gbcpu.a-gbmmu.memory[hl] == 0 {
+	if gbcpu.a-gbmmu.fetchByte(hl) == 0 {
 		gbcpu.f = Set(gbcpu.f, F6)
 	} else {
 		gbcpu.f = Clear(gbcpu.f, F6)
 	}
 	//todo - implement other flags
-	debugLog(fmt.Sprintf("a is %02x, (hl) is %02x\n", gbcpu.a, gbmmu.memory[hl]))
+	debugLog(fmt.Sprintf("a is %02x, (hl) is %02x\n", gbcpu.a, gbmmu.fetchByte(hl)))
 }
 
 // 0x00C5
 func (gbcpu *cpu) pop_bc() {
 	gbcpu.sp--
-	gbcpu.b = gbmmu.memory[gbcpu.sp]
+	gbcpu.b = gbmmu.fetchByte(gbcpu.sp)
 	gbcpu.sp--
-	gbcpu.c = gbmmu.memory[gbcpu.sp]
+	gbcpu.c = gbmmu.fetchByte(gbcpu.sp)
 	debugLog(fmt.Sprintf("popped bc as %02x%02x\n", gbcpu.b, gbcpu.c))
 }
 
 // 0x00C5
 func (gbcpu *cpu) push_bc() {
 	debugLog(fmt.Sprintf("pushing bc as %02x%02x\n", gbcpu.b, gbcpu.c))
-	gbmmu.memory[gbcpu.sp] = gbcpu.c
+	gbmmu.storeByte(gbcpu.sp, gbcpu.c)
 	gbcpu.sp++
-	gbmmu.memory[gbcpu.sp] = gbcpu.b
+	gbmmu.storeByte(gbcpu.sp, gbcpu.b)
 	gbcpu.sp++
 }
 
 // 0x00C9
 func (gbcpu *cpu) ret() {
 	gbcpu.sp--
-	msb := gbmmu.memory[gbcpu.sp]
+	msb := gbmmu.fetchByte(gbcpu.sp)
 	gbcpu.sp--
-	lsb := gbmmu.memory[gbcpu.sp]
+	lsb := gbmmu.fetchByte(gbcpu.sp)
 	gbcpu.pc = makeWord(msb, lsb)
 	debugLog(fmt.Sprintf("Return popped to PC as %04x\n", gbcpu.pc))
 }
@@ -836,9 +786,9 @@ func (gbcpu *cpu) call_a16() {
 
 	//push current PC onto stack
 	debugLog(fmt.Sprintf("PC: %04x LSB %02x MSB %02x\n", gbcpu.pc, getlsb(gbcpu.pc), getmsb(gbcpu.pc)))
-	gbmmu.memory[gbcpu.sp] = getlsb(gbcpu.pc)
+	gbmmu.storeByte(gbcpu.sp, getlsb(gbcpu.pc))
 	gbcpu.sp++
-	gbmmu.memory[gbcpu.sp] = getmsb(gbcpu.pc)
+	gbmmu.storeByte(gbcpu.sp, getmsb(gbcpu.pc))
 	gbcpu.sp++
 
 	//jump to new location
@@ -850,12 +800,12 @@ func (gbcpu *cpu) call_a16() {
 func (gbcpu *cpu) ldh_a8_a() {
 	offset := gbcpu.fetch()
 
-	gbmmu.memory[0xFF00+uint16(offset)] = gbcpu.a
+	gbmmu.storeByte(0xFF00+uint16(offset), gbcpu.a)
 }
 
 // 0x00E2
 func (gbcpu *cpu) ld_dc_a() {
-	gbmmu.memory[0xFF00+uint16(gbcpu.c)] = gbcpu.a
+	gbmmu.storeByte(0xFF00+uint16(gbcpu.c), gbcpu.a)
 }
 
 // 0x00EA
@@ -865,7 +815,7 @@ func (gbcpu *cpu) ld_a16_a() {
 	var a16 = makeWord(msb, lsb)
 
 	debugLog(fmt.Sprintf("Loading A into (%04x)\n", a16))
-	gbmmu.memory[a16] = gbcpu.a
+	gbmmu.storeByte(a16, gbcpu.a)
 }
 
 // 0x00F0
@@ -875,7 +825,7 @@ func (gbcpu *cpu) ldh_a_a8() {
 		gbcpu.nop()
 	}
 
-	gbcpu.a = gbmmu.memory[0xFF00+uint16(offset)]
+	gbcpu.a = gbmmu.fetchByte(0xFF00 + uint16(offset))
 }
 
 // 0x00FE
@@ -951,22 +901,13 @@ func run() {
 		panic(err)
 	}
 	for i, op := range boot {
-		gbmmu.memory[i] = byte(op)
+		gbmmu.storeByte(uint16(i), byte(op))
 	}
 
 	//load ROM into memory
 	//todo
 
-	//game loop
-	//todo
-
-	//execute clock cycle
-	gbcpu.a = 0xFF
-	for gbcpu.pc < 256 {
-		gbcpu.tick(gbmmu)
-		gbppu.hblank()
-	}
-
+	//setup window (GB screen)
 	cfg := pixelgl.WindowConfig{
 		Title:  "Pixel Rocks!",
 		Bounds: pixel.R(0, 0, 256, 256),
@@ -978,10 +919,18 @@ func run() {
 		panic(err)
 	}
 
-	for !win.Closed() {
-		win.Clear(colornames.Black)
-		gbppu.processTileMap()
-		gbppu.vblank(win)
+	//game loop
+	//todo
+
+	//execute clock cycle
+	gbcpu.a = 0xFF
+	for gbcpu.pc < 256 {
+		gbcpu.tick(gbmmu)
+		gbppu.hblank(win)
+
+		if win.Closed() {
+			return
+		}
 	}
 }
 
@@ -990,7 +939,7 @@ func main() {
 
 	fmt.Printf("Program complete\n")
 
-	for f := 0x8010; f < 0x9000; f++ {
-		fmt.Printf("%02x", gbmmu.memory[f])
+	for f := uint16(0x8010); f < 0x9000; f++ {
+		fmt.Printf("%02x", gbmmu.fetchByte(f))
 	}
 }
