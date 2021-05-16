@@ -15,13 +15,14 @@ var DEBUG bool = false
 //const boot_rom string = "31 FE FF AF 21 FF 9F 32 CB 7C 20 FB 21 26 FF 0E 11 3E 80 32 E2 0C 3E F3 E2 32 3E 77 77 3E FC E0 47 11 04 01 21 10 80 1A CD 95 00 CD 96 00 13 7B FE 34 20 F3 11 D8 00 06 08 1A 13 22 23 05 20 F9 3E 19 EA 10 99 21 2F 99 0E 0C 3D 28 08 32 0D 20 F9 2E 0F 18 F3 67 3E 64 57 E0 42 3E 91 E0 40 04 1E 02 0E 0C F0 44 FE 90 20 FA 0D 20 F7 1D 20 F2 0E 13 24 7C 1E 83 FE 62 28 06 1E C1 FE 64 20 06 7B E2 0C 3E 87 E2 F0 42 90 E0 42 15 20 D2 05 20 4F 16 20 18 CB 4F 06 04 C5 CB 11 17 C1 CB 11 17 05 20 F5 22 23 22 23 C9 CE ED 66 66 CC 0D 00 0B 03 73 00 83 00 0C 00 0D 00 08 11 1F 88 89 00 0E DC CC 6E E6 DD DD D9 99 BB BB 67 63 6E 0E EC CC DD DC 99 9F BB B9 33 3E 3C 42 B9 A5 B9 A5 42 3C 21 04 01 11 A8 00 1A 13 BE 20 FE 23 7D FE 34 20 F5 06 19 78 86 23 05 20 FB 86 20 FE 3E 01 E0 50"
 const boot_rom string = "31FEFFAF21FF9F32CB7C20FB2126FF0E113E8032E20C3EF3E2323E77773EFCE0471104012110801ACD9500CD9600137BFE3420F311D80006081A1322230520F93E19EA1099212F990E0C3D2808320D20F92E0F18F3673E6457E0423E91E040041E020E0CF044FE9020FA0D20F71D20F20E13247C1E83FE6228061EC1FE6420067BE20C3E87E2F04290E0421520D205204F162018CB4F0604C5CB1117C1CB11170520F522232223C9CEED6666CC0D000B03730083000C000D0008111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E3C42B9A5B9A5423C21040111A8001A13BE20FE237DFE3420F506197886230520FB8620FE3E01E050"
 
+var tstates uint16
+
 type cpu struct {
 	a, b, c, d, e, h, l byte
 	f                   Bits
 	pc, sp              uint16
 	opcodes             map[uint16]string
 	cb_prefix           bool
-	tstates             uint16
 }
 
 type Bits uint8
@@ -249,38 +250,44 @@ func getmsb(word uint16) byte {
 	return byte(word >> 8)
 }
 
+func isBitSet(value byte, bit int) bool {
+	switch bit {
+	case 0:
+	case 1:
+		return (value & 0b00000001) > 0
+	case 7:
+		return (value & 0b10000000) > 0
+	default:
+	}
+	return false
+}
+
 //fetch next instruction at the program counter (PC)
 func (gbcpu *cpu) fetch() byte {
 	var opcode byte = gbmmu.fetchByte(gbcpu.pc)
 	gbcpu.pc++
-	gbcpu.tstates += 4
+	tstates += 4
 
 	return opcode
 }
 
 //execute a clock cycle
-func (gbcpu *cpu) tick(gbmmu mmu) {
-	//debug code
-	if gbcpu.pc == 0x0021 {
-		debugLog("breakpoint\n")
-	}
-
+func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 	//get the opcode at the current program counter (PC)
 	//var opcode byte = gbmmu.memory[gbcpu.pc]
-	var asm string
+	//var asm string
 	var opcode = gbcpu.fetch()
 	if opcode == 0xCB {
 		gbcpu.cb_prefix = true
 		opcode = gbcpu.fetch()
-		asm = gbcpu.opcodes[uint16(0xCB)<<8+uint16(opcode)]
-		if opcode != 124 {
-			debugLog("breakpoint\n")
-		}
-	} else {
-		asm = gbcpu.opcodes[uint16(opcode)]
-	}
-	debugLog(fmt.Sprintf("PC: %04x Opcode is %02x %s\n", gbcpu.pc-1, opcode, asm))
-
+		//asm = gbcpu.opcodes[uint16(0xCB)<<8+uint16(opcode)]
+	} //else {
+	//asm = gbcpu.opcodes[uint16(opcode)]
+	//}
+	//debugLog(fmt.Sprintf("PC: %04x Opcode is %02x %s\n", gbcpu.pc-1, opcode, asm))
+	//if isBitSet(gbmmu.fetchByte(gbppu.LCDC), 7) {
+	//	fmt.Printf("PC: %04x Opcode is %02x %s\n", gbcpu.pc-1, opcode, asm)
+	//}
 	//perform relevant operation based on the current opcode
 	//todo create 16 bit word with opcode and have one switch statement?
 	if !gbcpu.cb_prefix {
@@ -909,8 +916,9 @@ func run() {
 
 	//setup window (GB screen)
 	cfg := pixelgl.WindowConfig{
-		Title:  "Pixel Rocks!",
-		Bounds: pixel.R(0, 0, 256, 256),
+		Title: "Pixel Rocks!",
+		//Bounds: pixel.R(0, 0, 256, 256),
+		Bounds: pixel.R(0, 0, float64(SCRWIDTH), float64(SCRHEIGHT)),
 		VSync:  true,
 	}
 
@@ -925,8 +933,17 @@ func run() {
 	//execute clock cycle
 	gbcpu.a = 0xFF
 	for gbcpu.pc < 256 {
-		gbcpu.tick(gbmmu)
-		gbppu.hblank(win)
+		gbcpu.tick(gbmmu, gbppu)
+		//gbppu.hblank(win)
+		//start := time.Now()
+		if tstates >= 48 {
+			gbppu.processTileMap(win)
+			tstates = 0
+		}
+
+		//t := time.Now()
+		//elapsed := t.Sub(start)
+		//fmt.Printf("%s\n", elapsed)
 
 		if win.Closed() {
 			return
