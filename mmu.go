@@ -10,9 +10,11 @@ type mmu struct {
 }
 
 func (gbmmu *mmu) fetchByte(address uint16) byte {
+	tstates += 4
 	return gbmmu.memory[address]
 }
 
 func (gbmmu *mmu) storeByte(address uint16, value byte) {
+	tstates += 4
 	gbmmu.memory[address] = value
 }
