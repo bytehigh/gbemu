@@ -131,7 +131,7 @@ func (gbppu *ppu) hblank(win *pixelgl.Window) {
 
 //draw the screen and update the window
 func (gbppu *ppu) vblank(win *pixelgl.Window) {
-	debugLog("In vblank\n")
+	debugLog("In vblank\n", DEBUG_INFO)
 	//win.Clear(color.RGBA{155, 188, 15, 0})
 	win.Clear(colornames.Black)
 	sprite = pixel.NewSprite(gbscreen, gbscreen.Bounds())
