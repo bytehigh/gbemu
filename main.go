@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	_ "image/png"
+	"log"
 	"os"
 
 	"github.com/faiface/pixel"
@@ -21,7 +22,7 @@ const (
 	DEBUG_INFO
 )
 
-//const boot_rom string = "31 FE FF AF 21 FF 9F 32 CB 7C 20 FB 21 26 FF 0E 11 3E 80 32 E2 0C 3E F3 E2 32 3E 77 77 3E FC E0 47 11 04 01 21 10 80 1A CD 95 00 CD 96 00 13 7B FE 34 20 F3 11 D8 00 06 08 1A 13 22 23 05 20 F9 3E 19 EA 10 99 21 2F 99 0E 0C 3D 28 08 32 0D 20 F9 2E 0F 18 F3 67 3E 64 57 E0 42 3E 91 E0 40 04 1E 02 0E 0C F0 44 FE 90 20 FA 0D 20 F7 1D 20 F2 0E 13 24 7C 1E 83 FE 62 28 06 1E C1 FE 64 20 06 7B E2 0C 3E 87 E2 F0 42 90 E0 42 15 20 D2 05 20 4F 16 20 18 CB 4F 06 04 C5 CB 11 17 C1 CB 11 17 05 20 F5 22 23 22 23 C9 CE ED 66 66 CC 0D 00 0B 03 73 00 83 00 0C 00 0D 00 08 11 1F 88 89 00 0E DC CC 6E E6 DD DD D9 99 BB BB 67 63 6E 0E EC CC DD DC 99 9F BB B9 33 3E 3C 42 B9 A5 B9 A5 42 3C 21 04 01 11 A8 00 1A 13 BE 20 FE 23 7D FE 34 20 F5 06 19 78 86 23 05 20 FB 86 20 FE 3E 01 E0 50"
+// const boot_rom string = "31 FE FF AF 21 FF 9F 32 CB 7C 20 FB 21 26 FF 0E 11 3E 80 32 E2 0C 3E F3 E2 32 3E 77 77 3E FC E0 47 11 04 01 21 10 80 1A CD 95 00 CD 96 00 13 7B FE 34 20 F3 11 D8 00 06 08 1A 13 22 23 05 20 F9 3E 19 EA 10 99 21 2F 99 0E 0C 3D 28 08 32 0D 20 F9 2E 0F 18 F3 67 3E 64 57 E0 42 3E 91 E0 40 04 1E 02 0E 0C F0 44 FE 90 20 FA 0D 20 F7 1D 20 F2 0E 13 24 7C 1E 83 FE 62 28 06 1E C1 FE 64 20 06 7B E2 0C 3E 87 E2 F0 42 90 E0 42 15 20 D2 05 20 4F 16 20 18 CB 4F 06 04 C5 CB 11 17 C1 CB 11 17 05 20 F5 22 23 22 23 C9 CE ED 66 66 CC 0D 00 0B 03 73 00 83 00 0C 00 0D 00 08 11 1F 88 89 00 0E DC CC 6E E6 DD DD D9 99 BB BB 67 63 6E 0E EC CC DD DC 99 9F BB B9 33 3E 3C 42 B9 A5 B9 A5 42 3C 21 04 01 11 A8 00 1A 13 BE 20 FE 23 7D FE 34 20 F5 06 19 78 86 23 05 20 FB 86 20 FE 3E 01 E0 50"
 const boot_rom string = "31FEFFAF21FF9F32CB7C20FB2126FF0E113E8032E20C3EF3E2323E77773EFCE0471104012110801ACD9500CD9600137BFE3420F311D80006081A1322230520F93E19EA1099212F990E0C3D2808320D20F92E0F18F3673E6457E0423E91E040041E020E0CF044FE9020FA0D20F71D20F20E13247C1E83FE6228061EC1FE6420067BE20C3E87E2F04290E0421520D205204F162018CB4F0604C5CB1117C1CB11170520F522232223C9CEED6666CC0D000B03730083000C000D0008111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E3C42B9A5B9A5423C21040111A8001A13BE20FE237DFE3420F506197886230520FB8620FE3E01E050"
 
 var tstates uint16
@@ -36,8 +37,8 @@ type cpu struct {
 
 type Bits uint8
 
-//Bit	7	6	5	4	3	2	1	0
-//Flag	S	Z	F5	H	F3	P/V	N	C
+// Bit	7	6	5	4	3	2	1	0
+// Flag	S	Z	F5	H	F3	P/V	N	C
 const (
 	C Bits = 1 << iota
 	N
@@ -60,7 +61,7 @@ func debugLog(message string, messageType uint8) {
 	}
 }
 
-//#region
+// #region
 func (gbcpu *cpu) initialise() {
 	gbcpu.cb_prefix = false
 	gbcpu.opcodes = map[uint16]string{
@@ -292,7 +293,7 @@ func isBitSet(value byte, bit int) bool {
 	return false
 }
 
-//fetch next instruction at the program counter (PC)
+// fetch next instruction at the program counter (PC)
 func (gbcpu *cpu) fetch() byte {
 	var opcode byte = gbmmu.fetchByte(gbcpu.pc)
 	gbcpu.pc++
@@ -301,7 +302,7 @@ func (gbcpu *cpu) fetch() byte {
 	return opcode
 }
 
-//execute a clock cycle
+// execute a clock cycle
 func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 	//get the opcode at the current program counter (PC)
 	//var opcode byte = gbmmu.memory[gbcpu.pc]
@@ -1258,6 +1259,21 @@ func (gbcpu *cpu) res_0_a() {
 	gbcpu.a = gbcpu.a & 0b11111110
 }
 
+func (gbcpu *cpu) status() {
+	outlog := fmt.Sprintf("A:%02x ", gbcpu.a)
+	outlog += fmt.Sprintf("F:%02x ", gbcpu.f)
+	outlog += fmt.Sprintf("B:%02x ", gbcpu.b)
+	outlog += fmt.Sprintf("C:%02x ", gbcpu.c)
+	outlog += fmt.Sprintf("D:%02x ", gbcpu.d)
+	outlog += fmt.Sprintf("E:%02x ", gbcpu.e)
+	outlog += fmt.Sprintf("H:%02x ", gbcpu.h)
+	outlog += fmt.Sprintf("L:%02x ", gbcpu.l)
+	outlog += fmt.Sprintf("SP:%04x ", gbcpu.sp)
+	outlog += fmt.Sprintf("PC:%04x ", gbcpu.pc)
+
+	log.Print(outlog)
+}
+
 func run() {
 	//gbmmu is global
 	gbcpu := cpu{}
@@ -1303,6 +1319,8 @@ func run() {
 	gbcpu.a = 0xFF
 	for gbcpu.pc <= 65535 {
 		gbcpu.tick(gbmmu, gbppu)
+		gbcpu.status()
+
 		//gbppu.hblank(win)
 		//start := time.Now()
 		if tstates >= 48 {
@@ -1321,11 +1339,24 @@ func run() {
 }
 
 func main() {
+	// log to custom file
+	LOG_FILE := "./gbemu_log"
+	// open log file
+	logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer logFile.Close()
+
+	// Set log out put and enjoy :)
+	log.SetOutput(logFile)
+	log.SetFlags(0)
+
 	pixelgl.Run(run)
 
 	fmt.Printf("Program complete\n")
 
-	for f := uint16(0x8010); f < 0x9000; f++ {
-		fmt.Printf("%02x", gbmmu.fetchByte(f))
-	}
+	//for f := uint16(0x8010); f < 0x9000; f++ {
+	//	fmt.Printf("%02x", gbmmu.fetchByte(f))
+	//}
 }
