@@ -50,7 +50,8 @@ func (gbrom *rom) load() {
 	var mem_pos = 0
 
 	// Open file and create scanner on top of it
-	file, err := os.Open("Tetris (World).gb")
+	//file, err := os.Open("Tetris (World).gb")
+	file, err := os.Open("01-special.gb")
 	if err != nil {
 		log.Fatal(err)
 	}
