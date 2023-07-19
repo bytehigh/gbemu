@@ -37,21 +37,7 @@ type cpu struct {
 
 type Bits uint8
 
-// Z80 Flags - which are different to the Gameboy Sharp LR35902
-// Bit	7	6	5	4	3	2	1	0
-// Flag	S	Z	F5	H	F3	P/V	N	C
-/*const (
-	C Bits = 1 << iota
-	N
-	PV
-	F3
-	H
-	F5
-	Z
-	S
-)*/
-
-// Gameboy Sharp LR35902 flags
+// Gameboy Sharp LR35902 flags (not the same as Z80)
 // Bit	7	6	5	4	3	2	1	0
 // Flag	Z	N	H	C	0	0	0	0
 const (
@@ -90,20 +76,19 @@ func (gbcpu *cpu) initialise() {
 		0x0014: "inc_d", 0x0015: "dec_d", 0x0016: "ld_d_d8", 0x0017: "rla",
 		0x0018: "jr_r8", 0x0019: "add_hl_de", 0x001A: "ld_a_de",
 		/*"dec_de": 0x1B, */
-		0x001C: "inc_e", 0x001D: "dec_e", 0x001E: "ld_e_d8",
-		/* "rra": 0x1F,
-		 */
+		0x001C: "inc_e", 0x001D: "dec_e", 0x001E: "ld_e_d8", 0x001F: "rra",
 		// 0x20
 		0x0020: "jr_nz_r8", 0x0021: "ld_hl_d16", 0x0022: "ld_hl_plus_a", 0x0023: "inc_hl",
 		0x0024: "inc_h",
-		/*"dec_h": 0x25, "ld_h_d8": 0x26, "daa": 0x27,*/
+		/*"dec_h": 0x25, */
+		0x0026: "ld_h_d8",
+		/* "daa": 0x27,*/
 		0x0028: "jr_z_r8",
 		/*"add_hl_hl": 0x29,
 		 */
 		0x002A: "ld_a_hl_plus", 0x002B: "dec_hl",
 		0x002C: "inc_l",
-		/* "dec_l": 0x2D,
-		 */
+		0x002D: "dec_l",
 		0x002E: "ld_l_d8", 0x002F: "cpl",
 		// 0x30
 		0x0030: "jr_nc_r8", 0x0031: "ld_sp_d16", 0x0032: "ld_hl_minus_a",
@@ -113,9 +98,11 @@ func (gbcpu *cpu) initialise() {
 		  :jr_c_r8, :add_hl_sp, :ld_a_hl_minus, :dec_sp, :inc_a, */
 		0x003D: "dec_a", 0x003E: "ld_a_d8",
 		/* // 0x40
-		   :ld_b_b, :ld_b_c, :ld_b_d, :ld_b_e, :ld_b_h, :ld_b_l, :ld_b_hl, */
+		   :ld_b_b, :ld_b_c, :ld_b_d, :ld_b_e, :ld_b_h, :ld_b_l,*/
+		0x0046: "ld_b_hl",
 		0x0047: "ld_b_a",
-		/* :ld_c_b, :ld_c_c, :ld_c_d, :ld_c_e, :ld_c_h, :ld_c_l, :ld_c_hl, */
+		/* :ld_c_b, :ld_c_c, :ld_c_d, :ld_c_e, :ld_c_h, :ld_c_l, */
+		0x004E: "ld_c_hl",
 		0x004F: "ld_c_a",
 		/*
 		  	// 0x50
@@ -128,7 +115,9 @@ func (gbcpu *cpu) initialise() {
 		/*:ld_h_b, :ld_h_c, :ld_h_d, :ld_h_e, :ld_h_h, :ld_h_l, :ld_h_hl,
 		 */
 		0x0067: "ld_h_a",
-		/*:ld_l_b, :ld_l_c, :ld_l_d, :ld_l_e, :ld_l_h, :ld_l_l, :ld_l_hl, :ld_l_a,
+		/*:ld_l_b, :ld_l_c, :ld_l_d, :ld_l_e, */
+		0x006C: "ld_l_h",
+		/*:ld_l_l, :ld_l_hl, :ld_l_a,
 		  // 0x70
 		  :ld_hl_b, :ld_hl_c, :ld_hl_d, :ld_hl_e, :ld_hl_h, :ld_hl_l, :halt,
 		*/
@@ -162,13 +151,16 @@ func (gbcpu *cpu) initialise() {
 		/*	"xor_b":  0xA8,	*/
 		0x00A9: "xor_c",
 		/* "xor_d":  0xAA,	"xor_e":  0xAB,
-		"xor_h":  0xAC,	"xor_l":  0xAD,	"xor_hl": 0xAE,
-		*/
+		"xor_h":  0xAC,	"xor_l":  0xAD, */
+		0x00AE: "xor_hl",
 		0x00AF: "xor_a",
 		0x00B0: "or_b", 0x00B1: "or_c",
 		/*
-			:or_d, :or_e, :or_h, :or_l, :or_hl, :or_a, :cp_b, :cp_c, :cp_d, :cp_e, :cp_h, :cp_l,
+			:or_d, :or_e, :or_h, :or_l, :or_hl,
 		*/
+		0x00B7: "or_a",
+		/*:cp_b, :cp_c, :cp_d, :cp_e, :cp_h, :cp_l,
+		 */
 		0x00BE: "cp_hl",
 		/* :cp_a,
 		   // 0xC0
@@ -181,9 +173,8 @@ func (gbcpu *cpu) initialise() {
 		0x00C3: "jp_a16",
 		0x00C4: "call_nz_a16",
 		0x00C5: "push_bc",
-		/*
-			:add_a_d8, :rst_00h, :ret_z,
-		*/
+		0x00C6: "add_a_d8",
+		/* :rst_00h, :ret_z,	*/
 		0x00C9: "ret", 0x00CA: "jp_z_a16",
 		/*:prefix_cb, :call_z_a16,
 		 */
@@ -197,8 +188,9 @@ func (gbcpu *cpu) initialise() {
 		/*:jp_nc_a16, :xx, :call_nc_a16,
 		 */
 		0x00D5: "push_de",
-		/*:sub_d8, :rst_10h, :ret_c, :reti, :jp_c_a16, :xx,
-		  :call_c_a16, :xx, :sbc_a_d8, :rst_18h,
+		0x00D6: "sub_d8",
+		/* :rst_10h, :ret_c, :reti, :jp_c_a16, :xx,
+		:call_c_a16, :xx, :sbc_a_d8, :rst_18h,
 		*/
 		// 0xE0
 		0x00E0: "ldh_a8_a", 0x00E1: "pop_hl", 0x00E2: "ld_dc_a", /* :xx, :xx,*/
@@ -206,8 +198,8 @@ func (gbcpu *cpu) initialise() {
 		/*:rst_20h, :add_sp_r8,
 		 */
 		0x00E9: "jp_dhl", 0x00EA: "ld_a16_a",
-		/*   :xx, :xx, :xx, :xor_d8,
-		 */
+		/*   :xx, :xx, :xx, */
+		0x00EE: "xor_d8",
 		0x00EF: "rst_28h",
 		// 0xF0
 		0x00F0: "ldh_a_a8",
@@ -233,13 +225,18 @@ func (gbcpu *cpu) initialise() {
 			        :rl_b, :rl_c, :rl_d, :rl_e, :rl_h, :rl_l, :rl_hl,
 		*/
 		0xCB11: "rl_c",
-		/*			:rr_b, :rr_c, :rr_d, :rr_e, :rr_h, :rr_l, :rr_hl, :rr_a,
-		# 0x20
-		:sla_b, :sla_c, :sla_d, :sla_e, :sla_h, :sla_l, :sla_hl, :sla_a, :sra_b, :sra_c, :sra_d, :sra_e, :sra_h, :sra_l, :sra_hl, :sra_a,
-		# 0x30
-		:swap_b, :swap_c, :swap_d, :swap_e, :swap_h, :swap_l, :swap_hl,*/
+		/*			:rr_b, :rr_c, :rr_d, :rr_e, :rr_h, :rr_l, :rr_hl, */
+		0xCB19: "rr_a",
+		0xCB1A: "rr_d",
+		0xCB1F: "rr_a",
+		/*
+			# 0x20
+			:sla_b, :sla_c, :sla_d, :sla_e, :sla_h, :sla_l, :sla_hl, :sla_a, :sra_b, :sra_c, :sra_d, :sra_e, :sra_h, :sra_l, :sra_hl, :sra_a,
+			# 0x30
+			:swap_b, :swap_c, :swap_d, :swap_e, :swap_h, :swap_l, :swap_hl,*/
 		0xCB37: "swap_a",
-		/*:srl_b, :srl_c, :srl_d, :srl_e, :srl_h, :srl_l, :srl_hl, :srl_a,
+		0xCB38: "srl_b",
+		/*:srl_c, :srl_d, :srl_e, :srl_h, :srl_l, :srl_hl, :srl_a,
 		# 0x40
 		:bit_0_b, :bit_0_c, :bit_0_d, :bit_0_e, :bit_0_h, :bit_0_l, :bit_0_hl, :bit_0_a, :bit_1_b, :bit_1_c, :bit_1_d, :bit_1_e, :bit_1_h,
 		:bit_1_l, :bit_1_hl, :bit_1_a,
@@ -387,6 +384,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.dec_e()
 		case 0x1E:
 			gbcpu.ld_e_d8()
+		case 0x1F:
+			gbcpu.rra()
 		case 0x20:
 			gbcpu.jr_nz_r8()
 		case 0x21:
@@ -397,6 +396,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.inc_hl()
 		case 0x24:
 			gbcpu.inc_h()
+		case 0x26:
+			gbcpu.ld_h_d8()
 		case 0x28:
 			gbcpu.jr_z_r8()
 		case 0x2A:
@@ -405,10 +406,14 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.dec_hl()
 		case 0x2C:
 			gbcpu.inc_l()
+		case 0x2D:
+			gbcpu.dec_l()
 		case 0x2E:
 			gbcpu.ld_l_d8()
 		case 0x2F:
 			gbcpu.cpl()
+		case 0x30:
+			gbcpu.jr_nc_r8()
 		case 0x31:
 			gbcpu.ld_sp_d16()
 		case 0x32:
@@ -421,8 +426,12 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.dec_a()
 		case 0x3E:
 			gbcpu.ld_a_d8()
+		case 0x46:
+			gbcpu.ld_b_hl()
 		case 0x47:
 			gbcpu.ld_b_a()
+		case 0x4E:
+			gbcpu.ld_c_hl()
 		case 0x4F:
 			gbcpu.ld_c_a()
 		case 0x56:
@@ -435,6 +444,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.ld_e_a()
 		case 0x67:
 			gbcpu.ld_h_a()
+		case 0x6C:
+			gbcpu.ld_l_h()
 		case 0x77:
 			gbcpu.ld_hl_a()
 		case 0x78:
@@ -459,12 +470,16 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.and_a()
 		case 0xA9:
 			gbcpu.xor_c()
+		case 0xAE:
+			gbcpu.xor_hl()
 		case 0xAF:
 			gbcpu.xor_a()
 		case 0xB0:
 			gbcpu.or_b()
 		case 0xB1:
 			gbcpu.or_c()
+		case 0xB7:
+			gbcpu.or_a()
 		case 0xBE:
 			gbcpu.cp_hl()
 		case 0xC1:
@@ -475,6 +490,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.call_nz_a16()
 		case 0xC5:
 			gbcpu.push_bc()
+		case 0xC6:
+			gbcpu.add_a_d8()
 		case 0xC9:
 			gbcpu.ret()
 		case 0xCA:
@@ -485,6 +502,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.pop_de()
 		case 0xD5:
 			gbcpu.push_de()
+		case 0xD6:
+			gbcpu.sub_d8()
 		case 0xE0:
 			gbcpu.ldh_a8_a()
 		case 0xE1:
@@ -499,6 +518,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.jp_dhl()
 		case 0xEA:
 			gbcpu.ld_a16_a()
+		case 0xEE:
+			gbcpu.xor_d8()
 		case 0xEF:
 			gbcpu.rst_28h()
 		case 0xF0:
@@ -524,8 +545,16 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 		switch opcode {
 		case 0x11:
 			gbcpu.rl_c()
+		case 0x19:
+			gbcpu.rr_c()
+		case 0x1A:
+			gbcpu.rr_d()
+		case 0x1F:
+			gbcpu.rr_a()
 		case 0x37:
 			gbcpu.swap_a()
+		case 0x38:
+			gbcpu.srl_b()
 		case 0x7C:
 			gbcpu.bit_7_h()
 		case 0x87:
@@ -585,15 +614,21 @@ func (gbcpu *cpu) inc_b() {
 func (gbcpu *cpu) dec_b() {
 	//set flags as appropriate
 	gbcpu.f = Set(gbcpu.f, N)
-	if gbcpu.b&0x0F == 0x00 {
+
+	//set H flag if required
+	if (gbcpu.b & 0x0F) == 0x00 {
 		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
 	}
+
+	//set Z flag if required
 	if gbcpu.b == 0x01 {
 		gbcpu.f = Set(gbcpu.f, Z)
 	} else {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
-	//todo - implement other flags
+
 	gbcpu.b--
 	debugLog(fmt.Sprintf("b is %02x\n", gbcpu.b), DEBUG_VAR)
 }
@@ -751,6 +786,8 @@ func (gbcpu *cpu) jr_r8() {
 }
 
 func (gbcpu *cpu) add_hl_de() {
+	gbcpu.f = Clear(gbcpu.f, N)
+
 	var hl = makeWord(gbcpu.h, gbcpu.l)
 	var de = makeWord(gbcpu.d, gbcpu.e)
 
@@ -800,6 +837,28 @@ func (gbcpu *cpu) dec_e() {
 // 0x001E
 func (gbcpu *cpu) ld_e_d8() {
 	gbcpu.e = gbcpu.fetch()
+}
+
+// 0x001F
+func (gbcpu *cpu) rra() {
+	//perform an RR A but faster with S, Z and P/V flags preserved
+	//capture status of C flag
+	carry := Has(gbcpu.f, C)
+
+	//reset H and N
+	gbcpu.f = Clear(gbcpu.f, H|N)
+	//set C according to bit 0 of register A before the shift
+	if gbcpu.a&0x01 == 0x01 {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+
+	gbcpu.a = gbcpu.a >> 1
+	//set bit 7 of A to carry flag
+	if carry {
+		gbcpu.a = gbcpu.a | 0x80
+	}
 }
 
 // 0x0020
@@ -860,6 +919,11 @@ func (gbcpu *cpu) inc_h() {
 	gbcpu.h++
 }
 
+// 0x0026
+func (gbcpu *cpu) ld_h_d8() {
+	gbcpu.h = gbcpu.fetch()
+}
+
 // 0x0028
 func (gbcpu *cpu) jr_z_r8() {
 	//fetch relative offset for jump if required
@@ -884,9 +948,9 @@ func (gbcpu *cpu) ld_a_hl_plus() {
 }
 
 // 0x002B
+// 16-bit decrements do not affect flags
 func (gbcpu *cpu) dec_hl() {
 	var hl uint16 = 256*uint16(gbcpu.h) + uint16(gbcpu.l)
-	gbcpu.f = Set(gbcpu.f, N)
 
 	hl--
 	gbcpu.h = uint8(hl >> 8)
@@ -909,6 +973,26 @@ func (gbcpu *cpu) inc_l() {
 	gbcpu.l++
 }
 
+// 0x002D
+func (gbcpu *cpu) dec_l() {
+	gbcpu.f = Set(gbcpu.f, N)
+	//set Z flag as appropriate
+	if gbcpu.l == 0x01 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+	//set H flag as appropriate
+	if gbcpu.l&0x0F == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	gbcpu.l--
+	debugLog(fmt.Sprintf("e is %02x\n", gbcpu.e), DEBUG_VAR)
+}
+
 // 0x002E
 func (gbcpu *cpu) ld_l_d8() {
 	gbcpu.l = gbcpu.fetch()
@@ -918,6 +1002,21 @@ func (gbcpu *cpu) ld_l_d8() {
 func (gbcpu *cpu) cpl() {
 	gbcpu.a = gbcpu.a ^ 0xFF
 	//todo - set H and N flags
+}
+
+// 0x0030
+func (gbcpu *cpu) jr_nc_r8() {
+	//fetch relative offset for jump if required
+	var rel_offset = gbcpu.fetch()
+
+	//check if C flag set
+	if !Has(gbcpu.f, C) {
+		if rel_offset > 127 {
+			gbcpu.pc = gbcpu.pc - uint16((255 - rel_offset + 1))
+		} else {
+			gbcpu.pc = gbcpu.pc + uint16(rel_offset)
+		}
+	}
 }
 
 // 0x0031
@@ -979,11 +1078,26 @@ func (gbcpu *cpu) ld_c_a() {
 	gbcpu.c = gbcpu.a
 }
 
+// 0x0046
+func (gbcpu *cpu) ld_b_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+
+	gbcpu.b = gbmmu.fetchByte(hl)
+}
+
 // 0x0047
 func (gbcpu *cpu) ld_b_a() {
 	gbcpu.b = gbcpu.a
 }
 
+// 0x004E
+func (gbcpu *cpu) ld_c_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+
+	gbcpu.c = gbmmu.fetchByte(hl)
+}
+
+// 0x004F
 func (gbcpu *cpu) ld_d_hl() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
 
@@ -1010,6 +1124,11 @@ func (gbcpu *cpu) ld_e_hl() {
 // 0x0067
 func (gbcpu *cpu) ld_h_a() {
 	gbcpu.h = gbcpu.a
+}
+
+// 0x006C
+func (gbcpu *cpu) ld_l_h() {
+	gbcpu.l = gbcpu.h
 }
 
 // 0x0077
@@ -1045,6 +1164,8 @@ func (gbcpu *cpu) ld_a_l() {
 
 // 0x0086
 func (gbcpu *cpu) add_a_hl() {
+	gbcpu.f = Clear(gbcpu.f, N)
+
 	var hl = makeWord(gbcpu.h, gbcpu.l)
 
 	gbcpu.a = gbcpu.a + gbmmu.fetchByte(hl)
@@ -1052,6 +1173,8 @@ func (gbcpu *cpu) add_a_hl() {
 
 // 0x0087
 func (gbcpu *cpu) add_a_a() {
+	gbcpu.f = Clear(gbcpu.f, N)
+
 	gbcpu.a = gbcpu.a + gbcpu.a
 }
 
@@ -1062,11 +1185,13 @@ func (gbcpu *cpu) sub_b() {
 
 // 0x00A1
 func (gbcpu *cpu) and_c() {
+	gbcpu.f = Clear(gbcpu.f, N|C)
 	gbcpu.a = gbcpu.a & gbcpu.c
 }
 
 // 0x00A7
 func (gbcpu *cpu) and_a() {
+	gbcpu.f = Clear(gbcpu.f, N|C)
 	gbcpu.a = gbcpu.a & gbcpu.a
 	if gbcpu.a == 0 {
 		gbcpu.f = Set(gbcpu.f, Z)
@@ -1087,21 +1212,44 @@ func (gbcpu *cpu) xor_c() {
 	gbcpu.f = Clear(gbcpu.f, N|H|C)
 }
 
+// 0x00AE
+func (gbcpu *cpu) xor_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+
+	gbcpu.a = gbcpu.a ^ gbmmu.fetchByte(hl)
+
+	gbcpu.f = Clear(gbcpu.f, N|H|C)
+}
+
 // 0x00AF
 func (gbcpu *cpu) xor_a() {
 	gbcpu.a = 0 //replaces the "fast" way of setting A to zero
 	//gbcpu.a = gbcpu.a ^ gbcpu.a
+	gbcpu.f = Clear(gbcpu.f, N|H|C)
 }
 
 // 0x00B0
 func (gbcpu *cpu) or_b() {
+	gbcpu.f = Clear(gbcpu.f, N|H|C)
+
 	gbcpu.a = gbcpu.a | gbcpu.b
 }
 
 // 0x00B1
 func (gbcpu *cpu) or_c() {
-	gbcpu.f = Clear(gbcpu.f, N|C|Z)
+	gbcpu.f = Clear(gbcpu.f, N|H|C|Z)
 	gbcpu.a = gbcpu.a | gbcpu.c
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+}
+
+// 0x00B7
+// is "or a" not just a no-op - apart from the flags?
+func (gbcpu *cpu) or_a() {
+	gbcpu.f = Clear(gbcpu.f, N|H|C|Z)
+	//do nothing!?
+	//gbcpu.a = gbcpu.a | gbcpu.a
 	if gbcpu.a == 0 {
 		gbcpu.f = Set(gbcpu.f, Z)
 	}
@@ -1172,6 +1320,37 @@ func (gbcpu *cpu) push_bc() {
 	gbcpu.sp--
 }
 
+// 0x00C6
+func (gbcpu *cpu) add_a_d8() {
+	//clear N flag as we are adding
+	gbcpu.f = Clear(gbcpu.f, N)
+
+	data := gbcpu.fetch()
+
+	//set C flag if required
+	if uint16(gbcpu.a)+uint16(data) > 0xFF {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+	//set H flag if required
+	if (gbcpu.a&0x0F)+(data&0x0F) > 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	//do the actual instruction!
+	gbcpu.a = gbcpu.a + data
+
+	//set Z flag if required
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+}
+
 // 0x00C9
 func (gbcpu *cpu) ret() {
 	gbcpu.sp++
@@ -1224,6 +1403,37 @@ func (gbcpu *cpu) push_de() {
 	gbcpu.sp--
 	gbmmu.storeByte(gbcpu.sp, gbcpu.d)
 	gbcpu.sp--
+}
+
+// 0x00D6
+func (gbcpu *cpu) sub_d8() {
+	//set N flag as we are subtracting
+	gbcpu.f = Set(gbcpu.f, N)
+
+	data := gbcpu.fetch()
+
+	//set C flag if required
+	if int16(gbcpu.a)-int16(data) < 0x00 {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+	//set H flag if required
+	if int16(gbcpu.a&0x0F)-int16(data&0x0F) < 0x00 {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	//do the actual instruction!
+	gbcpu.a = gbcpu.a - data
+
+	//set Z flag if required
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
 }
 
 // 0x00E0
@@ -1290,6 +1500,21 @@ func (gbcpu *cpu) ld_a16_a() {
 
 	debugLog(fmt.Sprintf("Loading A into (%04x)\n", a16), DEBUG_VAR)
 	gbmmu.storeByte(a16, gbcpu.a)
+}
+
+// 0x00EE
+func (gbcpu *cpu) xor_d8() {
+	d8 := gbcpu.fetch()
+
+	gbcpu.a = gbcpu.a ^ d8
+
+	//set flags
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+	gbcpu.f = Clear(gbcpu.f, N|C|H)
 }
 
 // 0x00EF
@@ -1370,7 +1595,17 @@ func (gbcpu *cpu) cp_d8() {
 	} else {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
-	//todo - implement other flags
+	if gbcpu.a < operand {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+	if (gbcpu.a & 0x0F) < (operand & 0x0F) {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
 	debugLog(fmt.Sprintf("a is %02x, operand is %02x\n", gbcpu.a, operand), DEBUG_VAR)
 }
 
@@ -1403,12 +1638,115 @@ func (gbcpu *cpu) rl_c() {
 	}
 }
 
+// 0xCB19
+func (gbcpu *cpu) rr_c() {
+	//capture status of C flag
+	carry := Has(gbcpu.f, C)
+
+	//reset H and N
+	gbcpu.f = Clear(gbcpu.f, H|N)
+	//set C according to bit 0 of register A before the shift
+	if gbcpu.c&0x01 == 0x01 {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+
+	gbcpu.c = gbcpu.c >> 1
+	//set bit 7 of A to carry flag
+	if carry {
+		gbcpu.c = gbcpu.c | 0x80
+	}
+	//set Z if result is zero
+	if gbcpu.c == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+}
+
+// 0xCB1A
+func (gbcpu *cpu) rr_d() {
+	//capture status of C flag
+	carry := Has(gbcpu.f, C)
+
+	//reset H and N
+	gbcpu.f = Clear(gbcpu.f, H|N)
+	//set C according to bit 0 of register A before the shift
+	if gbcpu.d&0x01 == 0x01 {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+
+	gbcpu.d = gbcpu.d >> 1
+	//set bit 7 of A to carry flag
+	if carry {
+		gbcpu.d = gbcpu.d | 0x80
+	}
+	//set Z if result is zero
+	if gbcpu.d == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+}
+
+// 0xCB1F
+func (gbcpu *cpu) rr_a() {
+	//capture status of C flag
+	carry := Has(gbcpu.f, C)
+
+	//reset H and N
+	gbcpu.f = Clear(gbcpu.f, H|N)
+	//set C according to bit 0 of register A before the shift
+	if gbcpu.a&0x01 == 0x01 {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+
+	gbcpu.a = gbcpu.a >> 1
+	//set bit 7 of A to carry flag
+	if carry {
+		gbcpu.a = gbcpu.a | 0x80
+	}
+	//set Z if result is zero
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+}
+
 // 0xCB37
 func (gbcpu *cpu) swap_a() {
 	copya := gbcpu.a
 	gbcpu.a = gbcpu.a << 4
 	copya = copya >> 4
 	gbcpu.a = gbcpu.a | copya
+}
+
+// 0xCB38
+func (gbcpu *cpu) srl_b() {
+	//reset N and H
+	gbcpu.f = Clear(gbcpu.f, N|H)
+	//set C to bit 0 of B
+	if gbcpu.b&0x01 == 0x01 {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+
+	//shift B right
+	gbcpu.b = gbcpu.b >> 1
+
+	//set Z if result is zero
+	if gbcpu.b == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
 }
 
 // 0xCB7C
@@ -1421,6 +1759,7 @@ func (gbcpu *cpu) bit_7_h() {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
 	// todo: leave C unchanged, N reset, H set, P/V undefined
+	gbcpu.f = Clear(gbcpu.f, N)
 }
 
 // 0xCB87
