@@ -79,35 +79,27 @@ func (gbcpu *cpu) initialise() {
 		0x001C: "inc_e", 0x001D: "dec_e", 0x001E: "ld_e_d8", 0x001F: "rra",
 		// 0x20
 		0x0020: "jr_nz_r8", 0x0021: "ld_hl_d16", 0x0022: "ld_hl_plus_a", 0x0023: "inc_hl",
-		0x0024: "inc_h",
-		/*"dec_h": 0x25, */
-		0x0026: "ld_h_d8",
-		/* "daa": 0x27,*/
-		0x0028: "jr_z_r8",
-		/*"add_hl_hl": 0x29,
-		 */
-		0x002A: "ld_a_hl_plus", 0x002B: "dec_hl",
-		0x002C: "inc_l",
-		0x002D: "dec_l",
-		0x002E: "ld_l_d8", 0x002F: "cpl",
+		0x0024: "inc_h", 0x0025: "dec_h", 0x0026: "ld_h_d8", 0x0027: "daa",
+		0x0028: "jr_z_r8", 0x0029: "add_hl_hl", 0x002A: "ld_a_hl_plus", 0x002B: "dec_hl",
+		0x002C: "inc_l", 0x002D: "dec_l", 0x002E: "ld_l_d8", 0x002F: "cpl",
 		// 0x30
 		0x0030: "jr_nc_r8", 0x0031: "ld_sp_d16", 0x0032: "ld_hl_minus_a",
 		/*:inc_sp, :inc__hl, */
 		0x0035: "dec__hl", 0x0036: "ld_hl_d8",
 		/*:scf,
-		  :jr_c_r8, :add_hl_sp, :ld_a_hl_minus, :dec_sp, :inc_a, */
+		  :jr_c_r8, :add_hl_sp, :ld_a_hl_minus, :dec_sp, */
+		0x003C: "inc_a",
 		0x003D: "dec_a", 0x003E: "ld_a_d8",
-		/* // 0x40
-		   :ld_b_b, :ld_b_c, :ld_b_d, :ld_b_e, :ld_b_h, :ld_b_l,*/
+		// 0x40
+		/*   :ld_b_b, :ld_b_c, :ld_b_d, :ld_b_e, :ld_b_h, :ld_b_l,*/
 		0x0046: "ld_b_hl",
 		0x0047: "ld_b_a",
 		/* :ld_c_b, :ld_c_c, :ld_c_d, :ld_c_e, :ld_c_h, :ld_c_l, */
 		0x004E: "ld_c_hl",
 		0x004F: "ld_c_a",
-		/*
-		  	// 0x50
-		      :ld_d_b, :ld_d_c, :ld_d_d, :ld_d_e, :ld_d_h, :ld_d_l,
-		*/
+		// 0x50
+		/*      :ld_d_b, :ld_d_c, :ld_d_d, :ld_d_e, :ld_d_h, :ld_d_l,
+		 */
 		0x0056: "ld_d_hl", 0x0057: "ld_d_a",
 		/*	  :ld_e_b, :ld_e_c, :ld_e_d, :ld_e_e, :ld_e_h, :ld_e_l, */
 		0x005E: "ld_e_hl", 0x005F: "ld_e_a",
@@ -117,13 +109,16 @@ func (gbcpu *cpu) initialise() {
 		0x0067: "ld_h_a",
 		/*:ld_l_b, :ld_l_c, :ld_l_d, :ld_l_e, */
 		0x006C: "ld_l_h",
-		/*:ld_l_l, :ld_l_hl, :ld_l_a,
-		  // 0x70
-		  :ld_hl_b, :ld_hl_c, :ld_hl_d, :ld_hl_e, :ld_hl_h, :ld_hl_l, :halt,
-		*/
-		0x0077: "ld_hl_a", 0x0078: "ld_a_b", 0x0079: "ld_a_c",
-		/*:ld_a_d,
+		/*:ld_l_l, */
+		0x006E: "ld_l_hl",
+		0x006F: "ld_l_a",
+		0x0070: "ld_hl_b",
+		0x0071: "ld_hl_c",
+		0x0072: "ld_hl_d",
+		/* :ld_hl_e, :ld_hl_h, :ld_hl_l, :halt,
 		 */
+		0x0077: "ld_hl_a", 0x0078: "ld_a_b", 0x0079: "ld_a_c",
+		0x007A: "ld_a_d",
 		0x007B: "ld_a_e", 0x007C: "ld_a_h", 0x007D: "ld_a_l",
 		/*
 			0x007E: "ld_a_hl",
@@ -159,7 +154,11 @@ func (gbcpu *cpu) initialise() {
 			:or_d, :or_e, :or_h, :or_l, :or_hl,
 		*/
 		0x00B7: "or_a",
-		/*:cp_b, :cp_c, :cp_d, :cp_e, :cp_h, :cp_l,
+		0x00B8: "cp_b",
+		0x00B9: "cp_c",
+		0x00BA: "cp_d",
+		0x00BB: "cp_e",
+		/* :cp_h, :cp_l,
 		 */
 		0x00BE: "cp_hl",
 		/* :cp_a,
@@ -167,9 +166,7 @@ func (gbcpu *cpu) initialise() {
 		   :ret_nz,
 		*/
 		0x00C1: "pop_bc",
-		/*
-		   :jp_nz_a16,
-		*/
+		0x00C2: "jp_nz_a16",
 		0x00C3: "jp_a16",
 		0x00C4: "call_nz_a16",
 		0x00C5: "push_bc",
@@ -179,11 +176,9 @@ func (gbcpu *cpu) initialise() {
 		/*:prefix_cb, :call_z_a16,
 		 */
 		0x00CD: "call_a16",
-		/*
-			:adc_a_d8, :rst_08h,
-			   // 0xD0
-			   :ret_nc,
-		*/
+		0x00CE: "adc_a_d8",
+		/* :rst_08h, */
+		0x00D0: "ret_nc",
 		0x00D1: "pop_de",
 		/*:jp_nc_a16, :xx, :call_nc_a16,
 		 */
@@ -396,10 +391,16 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.inc_hl()
 		case 0x24:
 			gbcpu.inc_h()
+		case 0x25:
+			gbcpu.dec_h()
 		case 0x26:
 			gbcpu.ld_h_d8()
+		case 0x27:
+			gbcpu.daa()
 		case 0x28:
 			gbcpu.jr_z_r8()
+		case 0x29:
+			gbcpu.add_hl_hl()
 		case 0x2A:
 			gbcpu.ld_a_hl_plus()
 		case 0x2B:
@@ -422,6 +423,8 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.dec__hl()
 		case 0x36:
 			gbcpu.ld_hl_d8()
+		case 0x3C:
+			gbcpu.inc_a()
 		case 0x3D:
 			gbcpu.dec_a()
 		case 0x3E:
@@ -446,12 +449,24 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.ld_h_a()
 		case 0x6C:
 			gbcpu.ld_l_h()
+		case 0x6E:
+			gbcpu.ld_l_hl()
+		case 0x6F:
+			gbcpu.ld_l_a()
+		case 0x70:
+			gbcpu.ld_hl_b()
+		case 0x71:
+			gbcpu.ld_hl_c()
+		case 0x72:
+			gbcpu.ld_hl_d()
 		case 0x77:
 			gbcpu.ld_hl_a()
 		case 0x78:
 			gbcpu.ld_a_b()
 		case 0x79:
 			gbcpu.ld_a_c()
+		case 0x7A:
+			gbcpu.ld_a_d()
 		case 0x7B:
 			gbcpu.ld_a_e()
 		case 0x7C:
@@ -478,12 +493,24 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.or_b()
 		case 0xB1:
 			gbcpu.or_c()
+		case 0xB6:
+			gbcpu.or_hl()
 		case 0xB7:
 			gbcpu.or_a()
+		case 0xB8:
+			gbcpu.cp_b()
+		case 0xB9:
+			gbcpu.cp_c()
+		case 0xBA:
+			gbcpu.cp_d()
+		case 0xBB:
+			gbcpu.cp_e()
 		case 0xBE:
 			gbcpu.cp_hl()
 		case 0xC1:
 			gbcpu.pop_bc()
+		case 0xC2:
+			gbcpu.jp_nz_a16()
 		case 0xC3:
 			gbcpu.jp_a16()
 		case 0xC4:
@@ -492,12 +519,18 @@ func (gbcpu *cpu) tick(gbmmu mmu, gbppu ppu) {
 			gbcpu.push_bc()
 		case 0xC6:
 			gbcpu.add_a_d8()
+		case 0xC8:
+			gbcpu.ret_z()
 		case 0xC9:
 			gbcpu.ret()
 		case 0xCA:
 			gbcpu.jp_z_a16()
 		case 0xCD:
 			gbcpu.call_a16()
+		case 0xCE:
+			gbcpu.adc_a_d8()
+		case 0xD0:
+			gbcpu.ret_nc()
 		case 0xD1:
 			gbcpu.pop_de()
 		case 0xD5:
@@ -649,7 +682,15 @@ func (gbcpu *cpu) dec_bc() {
 
 // 0x000C
 func (gbcpu *cpu) inc_c() {
+	//reset all flags implemented by this instruction
 	gbcpu.f = Clear(gbcpu.f, N|H|Z)
+	//set flags as appropriate
+	if (gbcpu.c & 0x0F) == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	}
+	if gbcpu.c == 0xFF {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
 
 	gbcpu.c++
 }
@@ -660,7 +701,7 @@ func (gbcpu *cpu) dec_c() {
 	gbcpu.f = Clear(gbcpu.f, N|H|Z)
 	//set flags as appropriate
 	gbcpu.f = Set(gbcpu.f, N)
-	if gbcpu.c&0x0F == 0x00 {
+	if (gbcpu.c & 0x0F) == 0x00 {
 		gbcpu.f = Set(gbcpu.f, H)
 	}
 	if gbcpu.c == 0x01 {
@@ -671,13 +712,6 @@ func (gbcpu *cpu) dec_c() {
 	}
 	//todo - implement other flags??
 
-	//set Z flag as appropriate
-	/*if gbcpu.c == 0x01 {
-		gbcpu.f = Set(gbcpu.f, Z)
-	} else {
-		gbcpu.f = Clear(gbcpu.f, Z)
-	}*/
-	//todo - implement other flags
 	gbcpu.c--
 	debugLog(fmt.Sprintf("c is %02x\n", gbcpu.c), DEBUG_VAR)
 }
@@ -739,7 +773,14 @@ func (gbcpu *cpu) dec_d() {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
 	gbcpu.f = Set(gbcpu.f, N)
-	//todo - implement other flags
+
+	//set H flag as appropriate
+	if (gbcpu.d & 0x0F) == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
 	gbcpu.d--
 	debugLog(fmt.Sprintf("d is %02x\n", gbcpu.d), DEBUG_VAR)
 }
@@ -785,6 +826,7 @@ func (gbcpu *cpu) jr_r8() {
 	}
 }
 
+// 0x0019
 func (gbcpu *cpu) add_hl_de() {
 	gbcpu.f = Clear(gbcpu.f, N)
 
@@ -822,15 +864,25 @@ func (gbcpu *cpu) inc_e() {
 
 // 0x001D
 func (gbcpu *cpu) dec_e() {
-	//set Z flag as appropriate
+	//set N flag as we are subtracting
+	gbcpu.f = Set(gbcpu.f, N)
+
+	//set Z flag as appropriate (use 0x01 as we are subtracting)
 	if gbcpu.e == 0x01 {
 		gbcpu.f = Set(gbcpu.f, Z)
 	} else {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
-	gbcpu.f = Set(gbcpu.f, N)
-	//todo - implement other flags
+
 	gbcpu.e--
+
+	//set H flag as appropriate
+	if (gbcpu.e & 0x0F) == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
 	debugLog(fmt.Sprintf("e is %02x\n", gbcpu.e), DEBUG_VAR)
 }
 
@@ -841,12 +893,12 @@ func (gbcpu *cpu) ld_e_d8() {
 
 // 0x001F
 func (gbcpu *cpu) rra() {
-	//perform an RR A but faster with S, Z and P/V flags preserved
-	//capture status of C flag
+	//perform an RR A
+	//capture current status of C flag
 	carry := Has(gbcpu.f, C)
 
-	//reset H and N
-	gbcpu.f = Clear(gbcpu.f, H|N)
+	//reset all other flags
+	gbcpu.f = Clear(gbcpu.f, H|N|Z)
 	//set C according to bit 0 of register A before the shift
 	if gbcpu.a&0x01 == 0x01 {
 		gbcpu.f = Set(gbcpu.f, C)
@@ -919,9 +971,82 @@ func (gbcpu *cpu) inc_h() {
 	gbcpu.h++
 }
 
+// 0x0025
+func (gbcpu *cpu) dec_h() {
+	//set Z flag as appropriate
+	if gbcpu.h == 0x01 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+	gbcpu.f = Set(gbcpu.f, N)
+	//set H flag as appropriate
+	if (gbcpu.h & 0x0F) == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	gbcpu.h--
+	debugLog(fmt.Sprintf("h is %02x\n", gbcpu.h), DEBUG_VAR)
+}
+
 // 0x0026
 func (gbcpu *cpu) ld_h_d8() {
 	gbcpu.h = gbcpu.fetch()
+}
+
+// 0x0027
+func (gbcpu *cpu) daa() {
+	if gbcpu.a == 0x0A && gbcpu.f == 0x40 {
+		debugLog(fmt.Sprintf("Time to debug DAA\n"), DEBUG_VAR)
+	}
+
+	a := int16(gbcpu.a)
+
+	//set Z80-Heaven for a good explanation of this instruction
+	//if the least significant four bits of A contain a non-BCD digit (i. e. it is greater than 9) or the H flag is set, then $06 is added to the register.
+	carry := Has(gbcpu.f, C)
+	//do I need to clear carry here too?
+	//don't clear N (see specification for DAA instruction
+	//gbcpu.f = Clear(gbcpu.f, N)
+
+	if !Has(gbcpu.f, N) {
+		if (gbcpu.a&0x0F) > 0x09 || Has(gbcpu.f, H) {
+			if (a + 0x06) > 0xFF {
+				gbcpu.f = Set(gbcpu.f, C)
+			}
+			a = a + 0x06
+		}
+
+		//Then the four most significant bits are checked. If this more significant digit also happens to be greater than 9 or the C flag is set, then $60 is added.
+		//if (gbcpu.a&0xF0) > 0x90 || carry {
+		if (a&0xF0) > 0x90 || Has(gbcpu.f, C) || carry {
+			if (a + 0x60) > 0xFF {
+				gbcpu.f = Set(gbcpu.f, C)
+			}
+			a = a + 0x60
+		}
+	} else {
+		//If the N flag is set, then the opposite operations are performed, i. e. $06 or $60 are subtracted from the register instead of being added, and the C flag is set or cleared appropriately.
+		//if (a&0x0F) > 0x09 || Has(gbcpu.f, H) {
+		if Has(gbcpu.f, H) {
+			a = a - 0x06
+		}
+		//if (a&0xF0) > 0x90 || Has(gbcpu.f, C) {
+		if Has(gbcpu.f, C) {
+			a = a - 0x60
+		}
+	}
+
+	gbcpu.a = uint8(a)
+
+	//H flag is always cleared, Z flag is set if A is zero, otherwise it is reset.
+	gbcpu.f = Clear(gbcpu.f, H|Z)
+	//set Z flag as appropriate
+	if gbcpu.a == 0x00 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
 }
 
 // 0x0028
@@ -939,9 +1064,37 @@ func (gbcpu *cpu) jr_z_r8() {
 	}
 }
 
+// 0x0029
+func (gbcpu *cpu) add_hl_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	var hl2 = makeWord(gbcpu.h, gbcpu.l)
+
+	//reset N flag
+	gbcpu.f = Clear(gbcpu.f, N)
+	//set C flag if appropriate
+	if (hl + hl2) > 0xFFFF {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+	//set H flag if appropriate
+	if (hl&0x0FFF)+(hl2&0x0FFF) > 0x0FFF {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	hl = hl + hl2
+	//gbcpu.h = uint8(hl >> 8)
+	//gbcpu.l = uint8(hl & 0xFF)
+	gbcpu.h = getmsb(hl)
+	gbcpu.l = getlsb(hl)
+}
+
 // 0x002A
 func (gbcpu *cpu) ld_a_hl_plus() {
-	var hl uint16 = 256*uint16(gbcpu.h) + uint16(gbcpu.l)
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	//var hl uint16 = 256*uint16(gbcpu.h) + uint16(gbcpu.l)
 	gbcpu.a = gbmmu.fetchByte(hl)
 
 	gbcpu.inc_hl()
@@ -950,7 +1103,7 @@ func (gbcpu *cpu) ld_a_hl_plus() {
 // 0x002B
 // 16-bit decrements do not affect flags
 func (gbcpu *cpu) dec_hl() {
-	var hl uint16 = 256*uint16(gbcpu.h) + uint16(gbcpu.l)
+	var hl = makeWord(gbcpu.h, gbcpu.l)
 
 	hl--
 	gbcpu.h = uint8(hl >> 8)
@@ -983,14 +1136,14 @@ func (gbcpu *cpu) dec_l() {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
 	//set H flag as appropriate
-	if gbcpu.l&0x0F == 0x0F {
+	if (gbcpu.l & 0x0F) == 0x0F {
 		gbcpu.f = Set(gbcpu.f, H)
 	} else {
 		gbcpu.f = Clear(gbcpu.f, H)
 	}
 
 	gbcpu.l--
-	debugLog(fmt.Sprintf("e is %02x\n", gbcpu.e), DEBUG_VAR)
+	debugLog(fmt.Sprintf("l is %02x\n", gbcpu.l), DEBUG_VAR)
 }
 
 // 0x002E
@@ -1037,7 +1190,7 @@ func (gbcpu *cpu) ld_hl_minus_a() {
 
 // 0x0035
 func (gbcpu *cpu) dec__hl() {
-	var hl uint16 = 256*uint16(gbcpu.h) + uint16(gbcpu.l)
+	var hl = makeWord(gbcpu.h, gbcpu.l)
 	gbcpu.f = Set(gbcpu.f, N)
 
 	data := gbmmu.fetchByte(hl)
@@ -1052,19 +1205,43 @@ func (gbcpu *cpu) ld_hl_d8() {
 	gbmmu.storeByte(hl, d8)
 }
 
+// 0x003C
+func (gbcpu *cpu) inc_a() {
+	//reset all flags implemented by this instruction
+	gbcpu.f = Clear(gbcpu.f, N|H|Z)
+	//set flags as appropriate
+	if gbcpu.a&0x0F == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	}
+	if gbcpu.a == 0xFF {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+
+	gbcpu.a++
+}
+
 // 0x003D
 func (gbcpu *cpu) dec_a() {
+	// set N flag as we are subtracting
+	gbcpu.f = Set(gbcpu.f, N)
+
 	//set Z flag as appropriate
 	if gbcpu.a == 0x01 {
 		gbcpu.f = Set(gbcpu.f, Z)
 	} else {
 		gbcpu.f = Clear(gbcpu.f, Z)
 	}
-	gbcpu.f = Set(gbcpu.f, N)
 
-	//todo - implement other flags
 	gbcpu.a--
-	debugLog(fmt.Sprintf("c is %02x\n", gbcpu.a), DEBUG_VAR)
+
+	//set H flag as appropriate
+	if gbcpu.a&0x0F == 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	debugLog(fmt.Sprintf("a is %02x\n", gbcpu.a), DEBUG_VAR)
 }
 
 // 0x003E
@@ -1073,7 +1250,7 @@ func (gbcpu *cpu) ld_a_d8() {
 	gbcpu.a = data
 }
 
-// 0x003E
+// 0x003F
 func (gbcpu *cpu) ld_c_a() {
 	gbcpu.c = gbcpu.a
 }
@@ -1131,6 +1308,36 @@ func (gbcpu *cpu) ld_l_h() {
 	gbcpu.l = gbcpu.h
 }
 
+// 0x006E
+func (gbcpu *cpu) ld_l_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+
+	gbcpu.l = gbmmu.fetchByte(hl)
+}
+
+// 0x006F
+func (gbcpu *cpu) ld_l_a() {
+	gbcpu.l = gbcpu.a
+}
+
+// 0x0070
+func (gbcpu *cpu) ld_hl_b() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	gbmmu.storeByte(hl, gbcpu.b)
+}
+
+// 0x0071
+func (gbcpu *cpu) ld_hl_c() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	gbmmu.storeByte(hl, gbcpu.c)
+}
+
+// 0x0072
+func (gbcpu *cpu) ld_hl_d() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+	gbmmu.storeByte(hl, gbcpu.d)
+}
+
 // 0x0077
 func (gbcpu *cpu) ld_hl_a() {
 	var hl = makeWord(gbcpu.h, gbcpu.l)
@@ -1145,6 +1352,11 @@ func (gbcpu *cpu) ld_a_b() {
 // 0x0079
 func (gbcpu *cpu) ld_a_c() {
 	gbcpu.a = gbcpu.c
+}
+
+// 0x007A
+func (gbcpu *cpu) ld_a_d() {
+	gbcpu.a = gbcpu.d
 }
 
 // 0x007B
@@ -1218,7 +1430,13 @@ func (gbcpu *cpu) xor_hl() {
 
 	gbcpu.a = gbcpu.a ^ gbmmu.fetchByte(hl)
 
+	//set flags accordingly
 	gbcpu.f = Clear(gbcpu.f, N|H|C)
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
 }
 
 // 0x00AF
@@ -1244,6 +1462,18 @@ func (gbcpu *cpu) or_c() {
 	}
 }
 
+// 0x00B6
+func (gbcpu *cpu) or_hl() {
+	var hl = makeWord(gbcpu.h, gbcpu.l)
+
+	gbcpu.f = Clear(gbcpu.f, N|H|C|Z)
+	gbcpu.a = gbcpu.a | gbmmu.fetchByte(hl)
+	// set Z flag if result is zero
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+}
+
 // 0x00B7
 // is "or a" not just a no-op - apart from the flags?
 func (gbcpu *cpu) or_a() {
@@ -1252,6 +1482,82 @@ func (gbcpu *cpu) or_a() {
 	//gbcpu.a = gbcpu.a | gbcpu.a
 	if gbcpu.a == 0 {
 		gbcpu.f = Set(gbcpu.f, Z)
+	}
+}
+
+// 0x00B8
+func (gbcpu *cpu) cp_b() {
+	gbcpu.f = Set(gbcpu.f, N)
+	gbcpu.f = Clear(gbcpu.f, C|H|Z)
+
+	// set Z flag if result is zero
+	if gbcpu.a-gbcpu.b == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+	//set H flag if no borrow from bit 4
+	if (gbcpu.a & 0x0F) < (gbcpu.b & 0x0F) {
+		gbcpu.f = Set(gbcpu.f, H)
+	}
+	//set C flag if no borrow
+	if gbcpu.a < gbcpu.b {
+		gbcpu.f = Set(gbcpu.f, C)
+	}
+}
+
+// 0x00B9
+func (gbcpu *cpu) cp_c() {
+	gbcpu.f = Set(gbcpu.f, N)
+	gbcpu.f = Clear(gbcpu.f, C|H|Z)
+
+	// set Z flag if result is zero
+	if gbcpu.a-gbcpu.c == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+	//set H flag if no borrow from bit 4
+	if (gbcpu.a & 0x0F) < (gbcpu.c & 0x0F) {
+		gbcpu.f = Set(gbcpu.f, H)
+	}
+	//set C flag if no borrow
+	if gbcpu.a < gbcpu.c {
+		gbcpu.f = Set(gbcpu.f, C)
+	}
+}
+
+// 0x00BA
+func (gbcpu *cpu) cp_d() {
+	gbcpu.f = Set(gbcpu.f, N)
+	gbcpu.f = Clear(gbcpu.f, C|H|Z)
+
+	// set Z flag if result is zero
+	if gbcpu.a-gbcpu.d == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+	//set H flag if no borrow from bit 4
+	if (gbcpu.a & 0x0F) < (gbcpu.d & 0x0F) {
+		gbcpu.f = Set(gbcpu.f, H)
+	}
+	//set C flag if no borrow
+	if gbcpu.a < gbcpu.d {
+		gbcpu.f = Set(gbcpu.f, C)
+	}
+}
+
+// 0x00BB
+func (gbcpu *cpu) cp_e() {
+	gbcpu.f = Set(gbcpu.f, N)
+	gbcpu.f = Clear(gbcpu.f, C|H|Z)
+
+	// set Z flag if result is zero
+	if gbcpu.a-gbcpu.e == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	}
+	//set H flag if no borrow from bit 4
+	if (gbcpu.a & 0x0F) < (gbcpu.e & 0x0F) {
+		gbcpu.f = Set(gbcpu.f, H)
+	}
+	//set C flag if no borrow
+	if gbcpu.a < gbcpu.e {
+		gbcpu.f = Set(gbcpu.f, C)
 	}
 }
 
@@ -1276,7 +1582,21 @@ func (gbcpu *cpu) pop_bc() {
 	gbcpu.b = gbmmu.fetchByte(gbcpu.sp)
 	gbcpu.sp++
 	gbcpu.c = gbmmu.fetchByte(gbcpu.sp)
-	debugLog(fmt.Sprintf("popped bc as %02x%02x\n", gbcpu.b, gbcpu.c), DEBUG_VAR)
+	debugLog(fmt.Sprintf("popped bc as %02x%02x\n", gbcpu.b, gbcpu.c), DEBUG_PUSHPOP)
+}
+
+// 0x00C2
+func (gbcpu *cpu) jp_nz_a16() {
+	var lsb = gbcpu.fetch()
+	var msb = gbcpu.fetch()
+
+	if !Has(gbcpu.f, Z) {
+		var a16 = makeWord(msb, lsb)
+
+		//jump to new location
+		gbcpu.pc = a16
+		debugLog(fmt.Sprintf("JP to PC: %04x\n", gbcpu.pc), DEBUG_JP)
+	}
 }
 
 // 0x00C3
@@ -1351,6 +1671,18 @@ func (gbcpu *cpu) add_a_d8() {
 	}
 }
 
+// 0x00C8
+func (gbcpu *cpu) ret_z() {
+	if Has(gbcpu.f, Z) {
+		gbcpu.sp++
+		msb := gbmmu.fetchByte(gbcpu.sp)
+		gbcpu.sp++
+		lsb := gbmmu.fetchByte(gbcpu.sp)
+		gbcpu.pc = makeWord(msb, lsb)
+		debugLog(fmt.Sprintf("Return popped to PC as %04x\n", gbcpu.pc), DEBUG_PUSHPOP)
+	}
+}
+
 // 0x00C9
 func (gbcpu *cpu) ret() {
 	gbcpu.sp++
@@ -1387,18 +1719,75 @@ func (gbcpu *cpu) call_a16() {
 	debugLog(fmt.Sprintf("Calling to PC: %04x\n", gbcpu.pc), DEBUG_JP)
 }
 
+// 0x00CE
+func (gbcpu *cpu) adc_a_d8() {
+	//clear N flag as we are adding
+	gbcpu.f = Clear(gbcpu.f, N)
+
+	data := gbcpu.fetch()
+
+	// check if C flag needs to be set but don't set it yet because we need the old value for the ADC
+	newcarry := false
+	addcarry := uint8(0)
+	if Has(gbcpu.f, C) {
+		addcarry = 1
+	}
+	if uint16(gbcpu.a)+uint16(data)+uint16(addcarry) > 0xFF {
+		newcarry = true
+	}
+
+	//set H flag if required
+	if (gbcpu.a&0x0F)+(data&0x0F)+addcarry > 0x0F {
+		gbcpu.f = Set(gbcpu.f, H)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, H)
+	}
+
+	//do the actual instruction!
+	gbcpu.a = gbcpu.a + data
+	if Has(gbcpu.f, C) {
+		gbcpu.a = gbcpu.a + 1
+	}
+
+	//set C flag if required
+	if newcarry {
+		gbcpu.f = Set(gbcpu.f, C)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, C)
+	}
+
+	//set Z flag if required
+	if gbcpu.a == 0 {
+		gbcpu.f = Set(gbcpu.f, Z)
+	} else {
+		gbcpu.f = Clear(gbcpu.f, Z)
+	}
+}
+
+// 0x00D0
+func (gbcpu *cpu) ret_nc() {
+	if !Has(gbcpu.f, C) {
+		gbcpu.sp++
+		msb := gbmmu.fetchByte(gbcpu.sp)
+		gbcpu.sp++
+		lsb := gbmmu.fetchByte(gbcpu.sp)
+		gbcpu.pc = makeWord(msb, lsb)
+		debugLog(fmt.Sprintf("Return popped to PC as %04x\n", gbcpu.pc), DEBUG_PUSHPOP)
+	}
+}
+
 // 0x00D1
 func (gbcpu *cpu) pop_de() {
 	gbcpu.sp++
 	gbcpu.d = gbmmu.fetchByte(gbcpu.sp)
 	gbcpu.sp++
 	gbcpu.e = gbmmu.fetchByte(gbcpu.sp)
-	debugLog(fmt.Sprintf("popped hl as %02x%02x\n", gbcpu.h, gbcpu.l), DEBUG_VAR)
+	debugLog(fmt.Sprintf("popped de as %02x%02x\n", gbcpu.d, gbcpu.e), DEBUG_PUSHPOP)
 }
 
 // 0x00D5
 func (gbcpu *cpu) push_de() {
-	debugLog(fmt.Sprintf("pushing de as %02x%02x\n", gbcpu.d, gbcpu.e), DEBUG_VAR)
+	debugLog(fmt.Sprintf("pushing de as %02x%02x\n", gbcpu.d, gbcpu.e), DEBUG_PUSHPOP)
 	gbmmu.storeByte(gbcpu.sp, gbcpu.e)
 	gbcpu.sp--
 	gbmmu.storeByte(gbcpu.sp, gbcpu.d)
@@ -1534,14 +1923,13 @@ func (gbcpu *cpu) rst_28h() {
 // 0x00F0
 func (gbcpu *cpu) ldh_a_a8() {
 	offset := gbcpu.fetch()
-	if offset == 0x44 {
-		gbcpu.nop()
-	}
-
 	gbcpu.a = gbmmu.fetchByte(0xFF00 + uint16(offset))
 
 	//REMOVE - FOR TESTING
-	gbcpu.a = 0x90
+	if offset == 0x44 {
+		gbcpu.a = 0x90
+	}
+
 }
 
 // 0x00F1
@@ -1549,7 +1937,14 @@ func (gbcpu *cpu) pop_af() {
 	gbcpu.sp++
 	gbcpu.a = gbmmu.fetchByte(gbcpu.sp)
 	gbcpu.sp++
-	gbcpu.f = Bits(gbmmu.fetchByte(gbcpu.sp))
+	getFlag := gbmmu.fetchByte(gbcpu.sp)
+	if gbcpu.a == 0x00 && getFlag == 0x10 {
+		debugLog(fmt.Sprintf("popped f as %02x\n", getFlag), DEBUG_PUSHPOP)
+	}
+	gbcpu.f = Bits(getFlag)
+	//gbcpu.f = Bits(gbmmu.fetchByte(gbcpu.sp))
+	//always clear unused bits in GB flags
+	gbcpu.f = Clear(gbcpu.f, X1|X2|X3|X4)
 	debugLog(fmt.Sprintf("popped af as %02x%02x\n", gbcpu.a, gbcpu.f), DEBUG_PUSHPOP)
 }
 
